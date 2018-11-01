@@ -522,22 +522,6 @@ reflex update_loan_and_bank
 		}
 
 	}
-	
-	reflex reset_Int_time when: farmPlot.area_INT = 0
-	{
-		grow_Time_INT <- 0;
-	}
-
-	reflex reset_IE_time when: farmPlot.area_IE = 0
-	{
-		grow_Time_IE <- 0;
-	}
-
-	reflex reset_IMS_time when: farmPlot.area_IMS = 0
-	{
-		grow_Time_IMS <- 0;
-	}
-	
 
 	reflex updateMemory{
 		float delta_income;
@@ -650,77 +634,254 @@ reflex update_loan_and_bank
 	}
 
 
-	action shift_IE_to_INT {
-		shift_INT_size <- rnd(0.3, 0.6);
-		let ic <- invest_cost_INT * shift_INT_size;
-		if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size) + ic) {
-			if farmPlot.area_IE - shift_INT_size > 0 {
-				farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
-				farmPlot.area_IE <- farmPlot.area_IE - shift_INT_size;
-				farmPlot.shrimp_Type <- vanamei;
-				set investment_cost <- ic;
-			} else {
-				farmPlot.area_INT <- farmPlot.area_INT + farmPlot.area_IE;
-				farmPlot.area_IE <- 0.0;
-				farmPlot.shrimp_Type <- vanamei; //rnd(monodon, vanamei)				
-				set investment_cost <- ic;
+	//shift from INT to other systems
+	reflex shift_from_INT when: farmPlot.area_INT > 0 and length(actual_incomeList) = memDepth//and INT_fail_time >= 2
+	{
+		bool INT_shift <- false;
+		investment_cost <- 0.0;
+		if farmPlot.area_IMS > 0
+		{
+			if farmPlot.area_INT < 0.5
+			{
+				let ic <- invest_cost_IMS * farmPlot.area_INT;
+				if HH_Account > ((Cost_1st_month_IMS * farmPlot.area_INT))
+				{
+					if flip(Prob_shift_INT_IMS)
+					{
+						if debug5
+						{
+							write "........shift from int to ims";
+						}
+						farmPlot.area_IMS <- farmPlot.area_IMS + farmPlot.area_INT;
+						farmPlot.area_INT <- 0.0;
+						set investment_cost <- ic;
+						INT_shift <- true;
+					}
+
+				}
+
 			}
 
-		}
+		} else if farmPlot.area_IE > 0
+		{
+			let ic <- investment_cost + (invest_cost_IE * farmPlot.area_INT);
+			if HH_Account > (Cost_1st_month_IE * farmPlot.area_INT)
+			{
+				if flip(Prob_shift_INT_IE)
+				{
+					if debug
+					{
+						write "........shift from int to ie";
+					}
 
-	}
-
-	
-	bool shift_IMS_to_INT {
-	    bool did_shift <- false;
-		if farmPlot.LU_office != "Protection forest" {
-			shift_INT_size <- rnd(0.3, 0.6);
-			let ic <- invest_cost_INT * shift_INT_size;
-			if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size) + ic) {
-				if farmPlot.area_IMS - shift_INT_size > 0 {
-					farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
-					farmPlot.area_IE <- farmPlot.area_IMS - shift_INT_size;
-					farmPlot.shrimp_Type <- vanamei;
+					farmPlot.area_IE <- farmPlot.area_IE + farmPlot.area_INT;
+					farmPlot.area_INT <- 0.0;
 					set investment_cost <- ic;
-					did_shift <- true;
-				} else {
-					farmPlot.area_INT <- farmPlot.area_INT + farmPlot.area_IMS;
-					farmPlot.area_IMS <- 0.0;
-					farmPlot.shrimp_Type <- vanamei; //rnd(monodon, vanamei)				
-					set investment_cost <- ic;
-					did_shift <- true;
+					INT_shift <- true;
 				}
 
 			}
 
 		}
-		return did_shift;
+
+		if !INT_shift and flip(reduce_chance)
+		{
+			if debug4
+			{
+				write "REDUCING area of intensive...";
+			}
+
+			if (farmPlot.area_INT * 0.5) > min_INT_size
+			{
+				farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_INT * 0.5);
+				farmPlot.area_INT <- farmPlot.area_INT * 0.5;
+			} else
+			{
+				farmPlot.area_Reduced <- farmPlot.area_Reduced + farmPlot.area_INT; // - min_INT_size) ;
+				farmPlot.area_INT <- 0.0; //min_INT_size;				
+			}
+
+			set farmPlot.production_System_Before_Reduce <- INT;
+		}
+
+	}
+
+
+
+	action shift_IE_to_INT{
+			shift_INT_size <- rnd(0.3,0.6);
+			let ic <- invest_cost_INT * shift_INT_size;
+			if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size) + ic){
+				if farmPlot.area_IE - shift_INT_size > 0{
+					farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
+					farmPlot.area_IE <- farmPlot.area_IE - shift_INT_size;
+					farmPlot.shrimp_Type <- vanamei;
+					set investment_cost <- ic;	
+				}else{			
+						farmPlot.area_INT <- farmPlot.area_INT + farmPlot.area_IE;
+						farmPlot.area_IE <- 0.0;
+						farmPlot.shrimp_Type <- vanamei; //rnd(monodon, vanamei)				
+						set investment_cost <- ic;					
+				}
+			}
+	}
+
+	action shift_INT_to_IE{
+			let ic <- investment_cost + (invest_cost_IE * farmPlot.area_INT);
+			if HH_Account > ((Cost_1st_month_IE * farmPlot.area_INT) + ic)
+			{
+				farmPlot.area_IE <- farmPlot.area_IE + farmPlot.area_INT;
+				farmPlot.area_INT <- 0.0;
+				set investment_cost <- ic;
+			}
 	}
 	
-
-	bool shift_INT_to_IE {
-		bool did_shift <- false;
-		let ic <- investment_cost + (invest_cost_IE * farmPlot.area_INT);
-		if HH_Account > ((Cost_1st_month_IE * farmPlot.area_INT) + ic) {
-			farmPlot.area_IE <- farmPlot.area_IE + farmPlot.area_INT;
-			farmPlot.area_INT <- 0.0;
-			set investment_cost <-  ic;
-			bool did_shift <- true;
-		}
-		return did_shift <- true;
-	}	
+	action shift_IMS_to_INT{
+			shift_INT_size <- rnd(0.3,0.6);
+			let ic <- invest_cost_INT * shift_INT_size;
+			if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size) + ic){
+				if farmPlot.area_IMS - shift_INT_size > 0{
+					farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
+					farmPlot.area_IE <- farmPlot.area_IMS - shift_INT_size;
+					farmPlot.shrimp_Type <- vanamei;
+					set investment_cost <- ic;	
+				}else{			
+						farmPlot.area_INT <- farmPlot.area_INT + farmPlot.area_IMS;
+						farmPlot.area_IMS <- 0.0;
+						farmPlot.shrimp_Type <- vanamei; //rnd(monodon, vanamei)				
+						set investment_cost <- ic;					
+				}
+			}		
+	}
 	
-	bool shift_INT_to_IMS{
-		    bool did_shift <- false; 
+	action shift_INT_to_IMS{
 			let ic <- investment_cost + (invest_cost_IMS * farmPlot.area_INT);
 			if HH_Account > ((Cost_1st_month_IMS * farmPlot.area_INT) + ic)
 			{
 				farmPlot.area_IMS <- farmPlot.area_IMS  + farmPlot.area_INT;
 				farmPlot.area_INT <- 0.0;
 				set investment_cost <- ic;
-				did_shift <- true;
 			}
-			return did_shift;
+	}
+
+
+	
+
+	reflex shift_from_IE when: farmPlot.area_IE > 0 and length(actual_incomeList) = memDepth
+	{
+		let Pshift <- calc_change_to_shift(Prob_shift_IE_INT, neighbourhood_effect(), infra_effect());
+		//write Pshift;
+		bool IE_shift <- false;
+		if debug
+		{
+			write "...analyse shift from IE system";
+		}
+
+		investment_cost <- 0.0;
+		//if (IE_sucess_time > 0)
+		if (IE_fail_time < 3)
+		{
+			let ic <- invest_cost_INT * shift_INT_size;
+			if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size) + ic)
+			{
+				if flip(Pshift)
+				{
+					if farmPlot.area_IE - shift_INT_size > 0
+					{
+						farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
+						farmPlot.area_IE <- farmPlot.area_IE - shift_INT_size;
+						farmPlot.shrimp_Type <- vanamei;
+						set investment_cost <- ic;
+						if debug5
+						{
+							write "........ shift to INT_IE hybrid";
+						}
+
+						IE_shift <- true;
+					} else
+					{
+						farmPlot.area_INT <- farmPlot.area_INT + farmPlot.area_IE;
+						farmPlot.area_IE <- 0.0;
+						farmPlot.shrimp_Type <- vanamei; //rnd(monodon, vanamei)				
+						set investment_cost <- ic;
+						if debug5
+						{
+							write "........completely shifted from IE to INT";
+						}
+
+						IE_shift <- true;
+					}
+
+				}
+
+			}
+
+		} else if (IE_fail_time >= 3) and (farmPlot.area_IMS > 0)
+		{
+			if debug
+			{
+				write "........shift from IE to IMS";
+			}
+
+			farmPlot.area_IMS <- farmPlot.area_IMS + farmPlot.area_IE;
+			set investment_cost <- invest_cost_IMS * farmPlot.area_IE;
+			farmPlot.area_IE <- 0.0;
+			IE_shift <- true;
+		} else if (IE_fail_time >= 3) and flip(reduce_chance)
+		{
+			if debug4
+			{
+				write "REDUCING area of improved extensive...";
+			}
+
+			if (farmPlot.area_IE * 0.5) > min_IE_size
+			{
+				farmPlot.area_IE <- farmPlot.area_IE * 0.5;
+				farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE * 0.5);
+			} else
+			{
+				farmPlot.area_IE <- min_IE_size;
+				farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE - min_IE_size);
+			}
+
+			set farmPlot.production_System_Before_Reduce <- IE;
+		}
+
+	}
+
+	reflex shift_from_IMS when: (farmPlot.area_IMS > 0 and farmPlot.LU_office != "Protection forest") and length(actual_incomeList) = memDepth
+	{
+		let Pshift <- calc_change_to_shift(Prob_shift_IMS_INT, neighbourhood_effect(), 0.0);
+		//write Pshift;
+		if debug
+		{
+			write "...analyse shift from IMS system";
+		}
+
+		investment_cost <- 0.0;
+		let ic <- invest_cost_INT * shift_INT_size;
+		if HH_Account > ((Cost_1st_month_INT_mono * farmPlot.area_INT) + ic)
+		{
+			if flip(Pshift) and farmPlot.area_INT < max_INT_size
+			{
+				if (farmPlot.area_IMS - shift_INT_size) > (0.7 * farmPlot.area_IMS)
+				{
+					if debug
+					{
+						write "......increasing INT in hybrid IMS-INT";
+					}
+
+					farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
+					farmPlot.area_IMS <- farmPlot.area_IMS - shift_INT_size;
+					farmPlot.shrimp_Type <- vanamei; //rnd(monodon, vanamei)
+					set investment_cost <- ic;
+					//IMS_shift <-true;
+				}
+
+			}
+
+		}
+
 	}
 
 	reflex shift_from_reduced when: farmPlot.area_Reduced > 0 and length(actual_incomeList) = memDepth
@@ -752,15 +913,119 @@ reflex update_loan_and_bank
 
 	}
 
+	//reflex recropabandon when: //abandon
+	//	reflex recrop_on_abandoned_farm when: farmPlot.area_Abandon > 0
+	//{
+	//	if debug{write "...Recrop abandoned pond";}
+	//
+	//	if INT_abandon_time >= 4
+	//	{
+	//		if flip(0.5)
+	//		{
+	//			farmPlot.area_INT <- farmPlot.area_Abandon;
+	//			farmPlot.area_Abandon <- 0.0;
+	//			crop_cost <- farmPlot.area_INT * Cost_1st_month_INT_vana; // cost to grow the abandoned farm again
+	//			grow_Time_INT <- grow_Time_INT + 1;
+	//			cycle_INT_vana <- 1;
+	//			INT_abandon_time <- 0;
+	//		}
+	//	} else
+	//	{
+	//		INT_abandon_time <- INT_abandon_time + 1;
+	//	}
+	//}
+	
+
+	// reflex grow time <- 0 for the systems which has no no area for farming
+	reflex reset_Int_time when: farmPlot.area_INT = 0
+	{
+		grow_Time_INT <- 0;
+	}
+
+	reflex reset_IE_time when: farmPlot.area_IE = 0
+	{
+		grow_Time_IE <- 0;
+	}
+
+	reflex reset_IMS_time when: farmPlot.area_IMS = 0
+	{
+		grow_Time_IMS <- 0;
+	}
+
+	//	reflex reduce_crop
+	//	{
+	//		if (INT_fail_time >= fail_time_to_reduce_INT) //INT reduce case requirement
+	//		and (INT_sucess_time = 0) and (HH_Account < Cost_1st_month_INT_mono * farmPlot.area_INT) and (farmPlot.area_IMS = 0.0)
+	//		{
+	//			// 0.9 will be replaced by a parameter
+	//			if flip(0.9)
+	//			{
+	//				if (farmPlot.area_INT - farmPlot.area_INT * 0.5) > min_INT_size
+	//				{
+	//					farmPlot.area_INT <- farmPlot.area_INT - farmPlot.area_INT * 0.5;
+	//				} else
+	//				{
+	//					farmPlot.area_INT <- min_INT_size;
+	//				}
+	//
+	//				reduce_time <- reduce_time + 1;
+	//			}
+	//
+	//		}
+
+	//		//reduce IE
+	//		if (IE_fail_time >= fail_time_to_reduce_IE) and (IE_sucess_time = 0) and (HH_Account < Cost_1st_month_IE * farmPlot.area_IE) and farmPlot.area_IMS > 0.0
+	//		{
+	//			if flip(0.9)
+	//			{
+	//				if (farmPlot.area_IE - farmPlot.area_IE * 0.5) > min_IE_size
+	//				{
+	//					farmPlot.area_IE <- farmPlot.area_IE - farmPlot.area_IE * 0.5;
+	//				} else
+	//				{
+	//					farmPlot.area_IE <- min_IE_size;
+	//				}
+	//			}
+	//
+	//		}
+
+	//	} //end of action calculation to reduce crop in case disease
+
+
+	//action to return # of intensive neighbours
+
+	
 
 
 
+	aspect default
+	{
+		if HH_Account > 0 and farmPlot.area_Reduced = 0
+		{
+			draw square(35) color: rgb('white');
+		} else if HH_Account < 0 and farmPlot.area_Reduced = 0
+		{
+			draw square(35) color: rgb('black');
+		} else if HH_Account > 0 and farmPlot.area_Reduced > 0
+		{
+			draw circle(35) color: rgb('white');
+		} else
+		{
+			draw circle(35) color: rgb('black');
+		}
+
+	}
 
 //actions
 
 	action repeat{
-	//basically nothing happens
-				
+
+			Prob_shift_IE_INT <- 0.0;
+			Prob_shift_IMS_INT<- 0.0;
+			Prob_shift_INT_IE <- 0.0;
+			Prob_shift_IMS_IE <- 0.0;
+			Prob_shift_INT_IMS<- 0.0;
+			Prob_shift_IE_IMS <- 0.0;			
 	}
 
 	action imitate{
@@ -949,25 +1214,5 @@ reflex update_loan_and_bank
 		let Pshift <- Pbase + (weight_NB_effect * Pneightbor) + (weight_Infra_effect * Pinfra);
 		return Pshift;
 	}
-	
-	
-	
-	aspect default
-	{
-		if HH_Account > 0 and farmPlot.area_Reduced = 0
-		{
-			draw square(35) color: rgb('white');
-		} else if HH_Account < 0 and farmPlot.area_Reduced = 0
-		{
-			draw square(35) color: rgb('black');
-		} else if HH_Account > 0 and farmPlot.area_Reduced > 0
-		{
-			draw circle(35) color: rgb('white');
-		} else
-		{
-			draw circle(35) color: rgb('black');
-		}
-
-	}	
 } //farm
 
