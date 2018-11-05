@@ -6,16 +6,13 @@
 */
 model Alegams_farm
 
-
-
 import "./Alegams_globals.gaml"
 import "./Alegams_plot.gaml"
 import "./Alegams_base.gaml"
 species farm
-{
-	
+{	
 	float step <- 1 #month;
-//declaration of the farm characteristics
+	//declaration of the farm characteristics
 	plot farmPlot;
 	list<farm> neighbours;
 	list plot;
@@ -77,7 +74,6 @@ species farm
 	float maintain_cost <- 0.0;
 	float hh_cost <- 0.0;
 
-	
 	//consumat variables
 	float ExistenceNeed <- 0.0;
 	float SocialNeed <- 0.0;
@@ -114,16 +110,11 @@ species farm
 		IE_sucess_time <- 0;
 		shifted <- false;
 		//INT_abandoned_area <- 0;
-		//INT_abandon_time <-0;
-
-		
+		//INT_abandon_time <-0;	
 	}
 
-	
 	reflex reinitialize
-	{
-	
-				
+	{				
 		if debug
 		{
 			write " ";
@@ -170,6 +161,7 @@ species farm
 		maintain_cost <- 0.0;
 		time <- time + 1;
 		shifted <- false;
+		investment_cost <- 0.0;
 	}
 
 	//	if at the fist time farming in a year, INT farmer failed their crop
@@ -274,7 +266,6 @@ species farm
 		//crop_cost <- crop_cost;
 	}
 
-
 	//calculate max income from harvest when nothing goes wrong	
 	reflex calculatePotentialIncome{
 		let shrimp_price_INT <- 0.0;
@@ -289,8 +280,8 @@ species farm
 		 potential_income <- (farmPlot.area_IMS * crop_yield_IMS * shrimp_price_IMS) +  (farmPlot.area_IE * crop_yield_IE * shrimp_price_IE) + (farmPlot.area_INT * crop_yield_INT *shrimp_price_INT);
 	}
 
-	// calculate second income for every cycle
-	
+
+	// calculate second income for every cycle	
 	reflex calc_second_income
 	{
 		if debug
@@ -323,6 +314,8 @@ species farm
 
 	reflex check_for_harvest_of_Intensive when: farmPlot.area_INT > 0
 	{
+
+
 	//write grow_Time_INT;
 		if debug
 		{
@@ -351,7 +344,6 @@ species farm
 					cycle_INT_vana <- cycle_INT_vana + 1;
 					INT_fail_time <- INT_fail_time + 1;
 				}
-
 			}
 			//grow_Time_INT <- 0;
 			seed_cost <- seed_cost + shrimp_init_INT * farmPlot.area_INT;
@@ -404,7 +396,7 @@ species farm
 	{
 		if debug
 		{
-			write "...check harvest imporoved extensive system";
+			write "...check harvest improved extensive system";
 		}
 
 		if flip(farmPlotFailureRate_IE)
@@ -431,7 +423,6 @@ species farm
 				seed_cost <- seed_cost + shrimp_init_IE * farmPlot.area_IE;
 				grow_Time_IE <- 0;
 			}
-
 		}
 
 		income_from_IE <- farmPlot.yield_IE * shrimp_price_IE;
@@ -466,11 +457,10 @@ species farm
 				seed_cost <- seed_cost + shrimp_init_IMS * farmPlot.area_IMS;
 				grow_Time_IMS <- 0;
 			}
-
 		}
-
 		income_from_IMS <- farmPlot.yield_IMS * shrimp_price_IMS;
 	}
+
 
 reflex update_loan_and_bank
 	{
@@ -525,7 +515,6 @@ reflex update_loan_and_bank
 			write "loan after " + loan;
 			write "=====================";
 		}
-
 	}
 	
 	reflex reset_Int_time when: farmPlot.area_INT = 0
@@ -572,6 +561,7 @@ reflex update_loan_and_bank
 		}
 	}
 	
+	
 	reflex calculateExistenceNeed when: length(actual_incomeList) = memDepth{
 		float avgIncome <- mean(actual_incomeList);	
 		float avgCosts <- mean(costList);	
@@ -584,7 +574,7 @@ reflex update_loan_and_bank
 		}
 	}
 
-	reflex calculateSocialNeed when: length(actual_incomeList) = memDepth {
+	reflex calculateSocialNeed when: length(actual_incomeList) = memDepth{
 		// first get average income of peers
 		float avgNeigbourIncome <- mean (whoToImmitate collect (mean(each.actual_incomeList)));
 		//write avgNeigbourIncome;
@@ -597,6 +587,7 @@ reflex update_loan_and_bank
 			//write	SocialNeed;
 		}  		
 	}
+
 	
 	reflex calculatePersonalNeed when: length(actual_incomeList) = memDepth{
 		if age < 30 {
@@ -627,6 +618,7 @@ reflex update_loan_and_bank
 		} 
 	}
 
+
 	reflex chooseBehaviour when: length(actual_incomeList) = memDepth{ 
 		//write  "S : "+Satisfaction;
 		//write  "U : "+Uncertainty;
@@ -642,20 +634,17 @@ reflex update_loan_and_bank
 			//write "imitation";
 			lastBehaviour <- "imitate";			
 			do imitate;
-
 		}
 		if !satisFied and certain{
 			//write "inquire";
 			lastBehaviour <- "inquire";			
 			do inquire;
-	
 		}
 		if !satisFied and !certain{
 			//write "optimise";
 			lastBehaviour <- "optimise";			
 			do optimise;
 		}
-		
 	}
 
 
@@ -663,23 +652,27 @@ reflex update_loan_and_bank
 		//write "IE to INT";
 		bool did_shift <- false;
 		shift_INT_size <- rnd(0.3, 0.6);
+		float cost_1st_month <- 0.0;
+		float invest_cost <- 0.0;
+		
+		int shrimpType <- rnd(monodon,vanamei);
+		if shrimpType = monodon{
+			cost_1st_month <- Cost_1st_month_INT_mono;
+		}else{
+			cost_1st_month <- Cost_1st_month_INT_vana;
+		}		
 		let ic <- invest_cost_INT * shift_INT_size;
-		if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size)) {
+		if HH_Account > ((cost_1st_month * shift_INT_size + ic)) {
+			set investment_cost <- ic;
+			did_shift <- true;
+			farmPlot.shrimp_Type <- shrimpType;							
 			if farmPlot.area_IE - shift_INT_size > 0 {
 				farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
 				farmPlot.area_IE <- farmPlot.area_IE - shift_INT_size;
-				farmPlot.shrimp_Type <- vanamei;
-				set investment_cost <- ic;
-				did_shift <- true;				
 			} else {
 				farmPlot.area_INT <- farmPlot.area_INT + farmPlot.area_IE;
-				farmPlot.area_IE <- 0.0;
-				farmPlot.shrimp_Type <- vanamei; //rnd(monodon, vanamei)				
-				set investment_cost <- ic;
-				did_shift <- true;
-				
+				farmPlot.area_IE <- 0.0;				
 			}
-
 		}
 		return did_shift;
 	}
@@ -689,35 +682,39 @@ reflex update_loan_and_bank
 		//write "IMS to INT";
 	    bool did_shift <- false;
 		if farmPlot.LU_office != "Protection forest" {
-			shift_INT_size <- rnd(0.3, 0.6);
+		shift_INT_size <- rnd(0.3, 0.6);
+		float cost_1st_month <- 0.0;
+		float invest_cost <- 0.0;		
+		int shrimpType <- rnd(monodon,vanamei);
+		if shrimpType = monodon{
+			cost_1st_month <- Cost_1st_month_INT_mono;
+		}else{
+			cost_1st_month <- Cost_1st_month_INT_vana;
+		}				
 			let ic <- invest_cost_INT * shift_INT_size;
-			if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size)) {
+			if HH_Account > ((cost_1st_month * shift_INT_size + ic)) {
+				set investment_cost <- ic;
+				did_shift <- true;
 				if farmPlot.area_IMS - shift_INT_size > 0 {
 					farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
 					farmPlot.area_IE <- farmPlot.area_IMS - shift_INT_size;
-					farmPlot.shrimp_Type <- vanamei;
-					set investment_cost <- ic;
-					did_shift <- true;
+					farmPlot.shrimp_Type <- shrimpType;
 				} else {
 					farmPlot.area_INT <- farmPlot.area_INT + farmPlot.area_IMS;
 					farmPlot.area_IMS <- 0.0;
-					farmPlot.shrimp_Type <- vanamei; //rnd(monodon, vanamei)				
-					set investment_cost <- ic;
-					did_shift <- true;
+					farmPlot.shrimp_Type <- shrimpType;				
 				}
-
 			}
-
 		}
 		return did_shift;
 	}
-	
 
+	
 	bool shift_INT_to_IE {
 		//write "INT to IE";
 		bool did_shift <- false;
 		let ic <- investment_cost + (invest_cost_IE * farmPlot.area_INT);
-		if HH_Account > ((Cost_1st_month_IE * farmPlot.area_INT)) {
+		if HH_Account > ((Cost_1st_month_IE * farmPlot.area_INT +ic)) {
 			farmPlot.area_IE <- farmPlot.area_IE + farmPlot.area_INT;
 			farmPlot.area_INT <- 0.0;
 			set investment_cost <-  ic;
@@ -725,12 +722,13 @@ reflex update_loan_and_bank
 		}
 		return did_shift; 
 	}	
+
 	
 	bool shift_INT_to_IMS{
 			//write "INT to IMS";
 		    bool did_shift <- false; 
 			let ic <- investment_cost + (invest_cost_IMS * farmPlot.area_INT);
-			if HH_Account > ((Cost_1st_month_IMS * farmPlot.area_INT)){
+			if HH_Account > ((Cost_1st_month_IMS * farmPlot.area_INT + ic)){
 				farmPlot.area_IMS <- farmPlot.area_IMS  + farmPlot.area_INT;
 				farmPlot.area_INT <- 0.0;
 				set investment_cost <- ic;
@@ -738,10 +736,9 @@ reflex update_loan_and_bank
 			}
 			return did_shift;
 	}
-	
+
 	
 	bool reduce_cropping (int fType) {
-
 		bool did_reduce <- false;
 		int countLoss <- 0;
 		loop c from: 0 to: 2 {
@@ -752,6 +749,7 @@ reflex update_loan_and_bank
 				countLoss <- countLoss + 1;
 			}
 		}
+		
 		if countLoss > 2 {  
 			if fType = INT {
 				if (farmPlot.area_INT * 0.5) > min_INT_size {
@@ -770,12 +768,12 @@ reflex update_loan_and_bank
 					farmPlot.area_IE <- min_IE_size;
 					farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE - min_IE_size);
 				}
-
 				set farmPlot.production_System_Before_Reduce <- IE;
 			}
 		}
 		return did_reduce;
 	}
+
 
 	reflex shift_from_reduced when: farmPlot.area_Reduced > 0 and length(actual_incomeList) = memDepth
 	{
@@ -806,8 +804,7 @@ reflex update_loan_and_bank
 
 	}
 
-
-
+	
 //actions
 	action repeat{
 	bool did_reduce <-  false;
@@ -826,6 +823,8 @@ reflex update_loan_and_bank
 	}
  if did_reduce {write "#";}
 }
+
+
 	action imitate{
 			bool shifted_system <- false;
 			map<int,int> prodSystem_frequenties <- whoToImmitate frequency_of each.farmPlot.production_System;

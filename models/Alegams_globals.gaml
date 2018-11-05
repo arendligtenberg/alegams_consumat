@@ -67,9 +67,9 @@ model Alegams_globals
 	//int time_Harvest_breakeven_IE <- 2 parameter: "period have to harvest improved extensive (months)" category: "Crop" ;
  	
 
- 	float farmPlotFailureRate_INT <- 0.55; //parameter: "chance of disease for intensive" category: "Crop" ; //0.2;
- 	float farmPlotFailureRate_IE <- 0.12;// parameter: "chance of disease for improved extensive" category: "Crop" ; //0.12;
- 	float farmPlotFailureRate_IMS <- 0.10;// parameter: "chance of disease for integrated mangrove" category: "Crop" ; //0.1;
+ 	float farmPlotFailureRate_INT <- 0.0; //parameter: "chance of disease for intensive" category: "Crop" ; //0.2;
+ 	float farmPlotFailureRate_IE <- 0.0;// parameter: "chance of disease for improved extensive" category: "Crop" ; //0.12;
+ 	float farmPlotFailureRate_IMS <- 0.0;// parameter: "chance of disease for integrated mangrove" category: "Crop" ; //0.1;
 
 
 	
@@ -151,9 +151,9 @@ model Alegams_globals
     
 	
 	//cost to seed new shrimp pond (mVnd/ha)
- 	float shrimp_init_INT <- 0 parameter: "cost to seed new intensive (mVnd/ha)" category: "Crop" ; //250
- 	float shrimp_init_IE <- 0 parameter: "cost to seed new improved extensive(mVnd/ha)" category: "Crop" ; //85
- 	float shrimp_init_IMS <- 0 parameter: "cost to seed new integrated mangrove(mVnd/ha)" category: "Crop" ; //79	 
+ 	float shrimp_init_INT <- 0.0 parameter: "cost to seed new intensive (mVnd/ha)" category: "Crop" ; //250
+ 	float shrimp_init_IE <- 0.0 parameter: "cost to seed new improved extensive(mVnd/ha)" category: "Crop" ; //85
+ 	float shrimp_init_IMS <- 0.0 parameter: "cost to seed new integrated mangrove(mVnd/ha)" category: "Crop" ; //79	 
  	 			
 	//crop costs (Mvnd/ha/month)
 	//float cropcost_avg_INT_mono <- 122.0 parameter: "crop costs intensive Monodon (mVnd/ha/month)" category: "Crop" ;
@@ -193,8 +193,8 @@ model Alegams_globals
 
 	
 	//investment cost
-	float invest_cost_INT_mono <- 235;
-	float invest_cost_INT_vana <- 290;
+	float invest_cost_INT_mono <- 235.0;
+	float invest_cost_INT_vana <- 290.0;
 	float invest_cost_INT <- 260.0;//average of mono and vana as these are not distinqjui
 	float invest_cost_IE <- 80.0;
 	float invest_cost_IMS <- 50.0;
