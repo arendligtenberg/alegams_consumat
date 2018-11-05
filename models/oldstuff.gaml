@@ -764,9 +764,6 @@ reflex update_loan_and_bank
 			}
 	}
 
-
-	
-
 	reflex shift_from_IE when: farmPlot.area_IE > 0 and length(actual_incomeList) = memDepth
 	{
 		let Pshift <- calc_change_to_shift(Prob_shift_IE_INT, neighbourhood_effect(), infra_effect());

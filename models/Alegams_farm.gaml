@@ -6,6 +6,8 @@
 */
 model Alegams_farm
 
+
+
 import "./Alegams_globals.gaml"
 import "./Alegams_plot.gaml"
 import "./Alegams_base.gaml"
@@ -86,6 +88,7 @@ species farm
 	bool certain <- false;		
 	bool buildList <- true;
 	list<farm> whoToImmitate <- [];
+	string lastBehaviour;
 	
 	init
 	{
@@ -129,12 +132,14 @@ species farm
 		}
 
 		if buildList{
-			whoToImmitate <- getXClosestsFarms(7);
+			//whoToImmitate <- getXClosestsFarms(7);
+			whoToImmitate <- farm closest_to(self,7);
 			//write whoToImmitate;
 			buildList <- false;
 		}
 
 		max_loan <- (max_loan_INT * farmPlot.area_INT) + (max_loan_IE * farmPlot.area_IE) + (max_loan_IMS * farmPlot.area_IMS);
+		
 		if doOnce
 		{
 			set neighbours <- agents_at_distance(radius_neighbors) of_species (species(self));
@@ -180,7 +185,7 @@ species farm
 
 	reflex calc_crop_costs
 	{
-		crop_cost <- 0;
+		crop_cost <- 0.0;
 		if debug
 		{
 			write "...calculating costs";
@@ -543,7 +548,7 @@ reflex update_loan_and_bank
 		float delta_income;
 		if potential_income > 0{
 			delta_income <- abs(actual_income - potential_income);	
-			//write "pot inc: "+ potential_income+ "act inc: "+actual_income+"delta inc: "+delta_income;
+			//write "pot inc: "+ potential_income+ " act inc: "+actual_income+" delta inc: "+delta_income;
 		}else{
 			delta_income <- 0.0;
 			}
@@ -630,53 +635,63 @@ reflex update_loan_and_bank
 		
 		if satisFied and certain{
 			//write "repetition";
+			lastBehaviour <- "repeat";
 			do repeat;
 		}
 		if satisFied and !certain{
 			//write "imitation";
+			lastBehaviour <- "imitate";			
 			do imitate;
 
 		}
 		if !satisFied and certain{
 			//write "inquire";
+			lastBehaviour <- "inquire";			
 			do inquire;
 	
 		}
 		if !satisFied and !certain{
 			//write "optimise";
+			lastBehaviour <- "optimise";			
 			do optimise;
 		}
 		
 	}
 
 
-	action shift_IE_to_INT {
+	bool shift_IE_to_INT {
+		//write "IE to INT";
+		bool did_shift <- false;
 		shift_INT_size <- rnd(0.3, 0.6);
 		let ic <- invest_cost_INT * shift_INT_size;
-		if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size) + ic) {
+		if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size)) {
 			if farmPlot.area_IE - shift_INT_size > 0 {
 				farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
 				farmPlot.area_IE <- farmPlot.area_IE - shift_INT_size;
 				farmPlot.shrimp_Type <- vanamei;
 				set investment_cost <- ic;
+				did_shift <- true;				
 			} else {
 				farmPlot.area_INT <- farmPlot.area_INT + farmPlot.area_IE;
 				farmPlot.area_IE <- 0.0;
 				farmPlot.shrimp_Type <- vanamei; //rnd(monodon, vanamei)				
 				set investment_cost <- ic;
+				did_shift <- true;
+				
 			}
 
 		}
-
+		return did_shift;
 	}
 
 	
 	bool shift_IMS_to_INT {
+		//write "IMS to INT";
 	    bool did_shift <- false;
 		if farmPlot.LU_office != "Protection forest" {
 			shift_INT_size <- rnd(0.3, 0.6);
 			let ic <- invest_cost_INT * shift_INT_size;
-			if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size) + ic) {
+			if HH_Account > ((Cost_1st_month_INT_mono * shift_INT_size)) {
 				if farmPlot.area_IMS - shift_INT_size > 0 {
 					farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
 					farmPlot.area_IE <- farmPlot.area_IMS - shift_INT_size;
@@ -699,28 +714,67 @@ reflex update_loan_and_bank
 	
 
 	bool shift_INT_to_IE {
+		//write "INT to IE";
 		bool did_shift <- false;
 		let ic <- investment_cost + (invest_cost_IE * farmPlot.area_INT);
-		if HH_Account > ((Cost_1st_month_IE * farmPlot.area_INT) + ic) {
+		if HH_Account > ((Cost_1st_month_IE * farmPlot.area_INT)) {
 			farmPlot.area_IE <- farmPlot.area_IE + farmPlot.area_INT;
 			farmPlot.area_INT <- 0.0;
 			set investment_cost <-  ic;
 			bool did_shift <- true;
 		}
-		return did_shift <- true;
+		return did_shift; 
 	}	
 	
 	bool shift_INT_to_IMS{
+			//write "INT to IMS";
 		    bool did_shift <- false; 
 			let ic <- investment_cost + (invest_cost_IMS * farmPlot.area_INT);
-			if HH_Account > ((Cost_1st_month_IMS * farmPlot.area_INT) + ic)
-			{
+			if HH_Account > ((Cost_1st_month_IMS * farmPlot.area_INT)){
 				farmPlot.area_IMS <- farmPlot.area_IMS  + farmPlot.area_INT;
 				farmPlot.area_INT <- 0.0;
 				set investment_cost <- ic;
 				did_shift <- true;
 			}
 			return did_shift;
+	}
+	
+	
+	bool reduce_cropping (int fType) {
+
+		bool did_reduce <- false;
+		int countLoss <- 0;
+		loop c from: 0 to: 2 {
+			float actualIncome <- actual_incomeList[c];
+			float potentialIncome <- potential_incomeList[c];
+			//write actualIncome;
+			if (actualIncome-potentialIncome) < 0 {
+				countLoss <- countLoss + 1;
+			}
+		}
+		if countLoss > 2 {  
+			if fType = INT {
+				if (farmPlot.area_INT * 0.5) > min_INT_size {
+					farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_INT * 0.5);
+					farmPlot.area_INT <- farmPlot.area_INT * 0.5;
+				} else {
+					farmPlot.area_Reduced <- farmPlot.area_Reduced + farmPlot.area_INT; // - min_INT_size) ;
+					farmPlot.area_INT <- 0.0; //min_INT_size;				
+				}
+				set farmPlot.production_System_Before_Reduce <- INT;
+			} else if fType = IE {
+				if (farmPlot.area_IE * 0.5) > min_IE_size {
+					farmPlot.area_IE <- farmPlot.area_IE * 0.5;
+					farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE * 0.5);
+				} else {
+					farmPlot.area_IE <- min_IE_size;
+					farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE - min_IE_size);
+				}
+
+				set farmPlot.production_System_Before_Reduce <- IE;
+			}
+		}
+		return did_reduce;
 	}
 
 	reflex shift_from_reduced when: farmPlot.area_Reduced > 0 and length(actual_incomeList) = memDepth
@@ -754,115 +808,103 @@ reflex update_loan_and_bank
 
 
 
-
-
 //actions
-
 	action repeat{
-	//basically nothing happens
-				
+	bool did_reduce <-  false;
+	//basically nothing happens, only check if continuing is still vitat
+	bool hasINT <- false;
+	bool hasIE <- false;
+	if farmPlot.area_INT > 0 {hasINT <- true;}
+	if farmPlot.area_IE > 0{ hasIE <- true;}
+	
+	if hasINT and hasIE { 
+		did_reduce <- self reduce_cropping(INT);
+	}else if hasINT and !hasIE { 
+		did_reduce <- self reduce_cropping(INT);
+	}else if !hasINT and hasIE {
+		did_reduce <- self reduce_cropping(IE);
 	}
-
+ if did_reduce {write "#";}
+}
 	action imitate{
-			//write whoToImmitate frequency_of each.farmPlot.production_System;
+			bool shifted_system <- false;
 			map<int,int> prodSystem_frequenties <- whoToImmitate frequency_of each.farmPlot.production_System;
 			int productionSystemToMoveTo <- prodSystem_frequenties index_of (max(prodSystem_frequenties));
 			if productionSystemToMoveTo = INT{
-				Prob_shift_IE_INT <- 1.0;
-				Prob_shift_IMS_INT<- 1.0;
-				Prob_shift_INT_IE <- 0.0;
-				Prob_shift_IMS_IE <- 0.0;
-				Prob_shift_INT_IMS<- 0.0;
-				Prob_shift_IE_IMS <- 0.0;
-				
+				if farmPlot.area_IE > min_INT_size{
+					shifted_system <-  self shift_IE_to_INT[];
+					//write shifted_system;
+				}else if farmPlot.area_IMS > min_INT_size{
+					shifted_system <- self shift_IMS_to_INT[];
+					//write shifted_system;
+			}
 			}
 			if productionSystemToMoveTo = IE{
-				Prob_shift_IE_INT <- 0.05;
-				Prob_shift_IMS_INT<- 0.05;
-				Prob_shift_INT_IE <- 0.8;
-				Prob_shift_IMS_IE <- 0.8;
-				Prob_shift_INT_IMS<- 0.03;
-				Prob_shift_IE_IMS <- 0.05;
+				shifted_system <- self shift_INT_to_IE[];
+				//write shifted_system;
+				
 			}
 			
 			if productionSystemToMoveTo = IMS{
-				Prob_shift_IE_INT <- 0.05;
-				Prob_shift_IMS_INT<- 0.05;
-				Prob_shift_INT_IE <- 0.05;
-				Prob_shift_IMS_IE <- 0.05;
-				Prob_shift_INT_IMS<- 0.8;
-				Prob_shift_IE_IMS <- 0.8;
-			}				   
-	}
+				shifted_system <- self shift_INT_to_IMS[];
+				//write shifted_system;							   
+			}
+	
+		}
 
 	action inquire{
+			bool shifted_system <- false;
 			list<farm> randomFarms <- getXRandomFarms(10); 
 			map<int,int> prodSystem_frequenties <- randomFarms frequency_of each.farmPlot.production_System;
 			int productionSystemToMoveTo <- prodSystem_frequenties index_of (max(prodSystem_frequenties));
 			if productionSystemToMoveTo = INT{
-				Prob_shift_IE_INT <- 0.8;
-				Prob_shift_IMS_INT<- 0.8;
-				Prob_shift_INT_IE <- 0.05;
-				Prob_shift_IMS_IE <- 0.05;
-				Prob_shift_INT_IMS<- 0.03;
-				Prob_shift_IE_IMS <- 0.05;
+				if farmPlot.area_IE > min_INT_size{
+					shifted_system <-  self shift_IE_to_INT[];
+					//write shifted_system;
+				}else if farmPlot.area_IMS > min_INT_size{
+					shifted_system <- self shift_IMS_to_INT[];
+					//write shifted_system;
+			}
 				
 			}
 			if productionSystemToMoveTo = IE{
-				Prob_shift_IE_INT <- 0.05;
-				Prob_shift_IMS_INT<- 0.05;
-				Prob_shift_INT_IE <- 0.8;
-				Prob_shift_IMS_IE <- 0.8;
-				Prob_shift_INT_IMS<- 0.03;
-				Prob_shift_IE_IMS <- 0.05;
+				shifted_system <- self shift_INT_to_IE[];
+				//write shifted_system;
 			}
 			
 			if productionSystemToMoveTo = IMS{
-				Prob_shift_IE_INT <- 0.05;
-				Prob_shift_IMS_INT<- 0.05;
-				Prob_shift_INT_IE <- 0.05;
-				Prob_shift_IMS_IE <- 0.05;
-				Prob_shift_INT_IMS<- 0.8;
-				Prob_shift_IE_IMS <- 0.8;			
-			
+				shifted_system <- self shift_INT_to_IMS[];
+				//write shifted_system;	
 			}
 		}
 		
 		action optimise{
-			list<farm> allFarms <- (farm collect(each));
-			map<int,int> prodSystem_frequenties <- allFarms frequency_of each.farmPlot.production_System;
-			int productionSystemToMoveTo <- prodSystem_frequenties index_of (max(prodSystem_frequenties));
-				if productionSystemToMoveTo = INT{
-				Prob_shift_IE_INT <- 0.8;
-				Prob_shift_IMS_INT<- 0.8;
-				Prob_shift_INT_IE <- 0.05;
-				Prob_shift_IMS_IE <- 0.05;
-				Prob_shift_INT_IMS<- 0.03;
-				Prob_shift_IE_IMS <- 0.05;
-				
-			}
-			if productionSystemToMoveTo = IE{
-				Prob_shift_IE_INT <- 0.05;
-				Prob_shift_IMS_INT<- 0.05;
-				Prob_shift_INT_IE <- 0.8;
-				Prob_shift_IMS_IE <- 0.8;
-				Prob_shift_INT_IMS<- 0.03;
-				Prob_shift_IE_IMS <- 0.05;
-			}
-			
-			if productionSystemToMoveTo = IMS{
-				Prob_shift_IE_INT <- 0.05;
-				Prob_shift_IMS_INT<- 0.05;
-				Prob_shift_INT_IE <- 0.05;
-				Prob_shift_IMS_IE <- 0.05;
-				Prob_shift_INT_IMS<- 0.8;
-				Prob_shift_IE_IMS <- 0.8;
-			}				   
-			
-				
+			bool shifted_system <- false;			
+//			list<farm> allFarms <- (farm collect(each));
+//			map<int,int> prodSystem_frequenties <- allFarms frequency_of each.farmPlot.production_System;
+//			int productionSystemToMoveTo <- prodSystem_frequenties index_of (max(prodSystem_frequenties));
+//				if productionSystemToMoveTo = INT{
+				if farmPlot.area_IE > min_INT_size{
+					shifted_system <-  self shift_IE_to_INT[];
+//					//write shifted_system;
+				}else if farmPlot.area_IMS > min_INT_size{
+					shifted_system <- self shift_IMS_to_INT[];
+//					//write shifted_system;
+				}
+//			}
+//				
+//			if productionSystemToMoveTo = IE{
+//				shifted_system <- self shift_INT_to_IE[];
+//				//write shifted_system;
+//			}
+//			
+//			if productionSystemToMoveTo = IMS{
+//				shifted_system <- self shift_INT_to_IMS[];
+//				//write shifted_system;	
+//			}				  
+		
 		}
 	
-
 		list getXRandomFarms(int n){
 			list<farm>randomFarms <- [];
 			loop times: n{
@@ -884,18 +926,20 @@ reflex update_loan_and_bank
 //		 }
 		//write closestFarms;	
 
-		list<float> farmDistances <- [];
-		list<farm> allFarms <- (farm collect(each));
+//		list<float> farmDistances <- [];
+//		list<farm> allFarms <- (farm collect(each));
 		list<farm> closestFarms <- [];
-		loop a over: allFarms{
-			add distance_to(self, a) to: farmDistances;
-		}
-		list sortedDistances <- farmDistances sort_by (each);
-		closestFarms <- allFarms at_distance sortedDistances[n];
-		farmDistances <- nil;
-		allFarms <- nil;
+//		loop a over: allFarms{
+//			add distance_to(self, a) to: farmDistances;
+//		}
+//		list sortedDistances <- farmDistances sort_by (each);
+//		closestFarms <- allFarms at_distance sortedDistances[n];
+//		farmDistances <- nil;
+//		allFarms <- nil;
 
 		//write (closestFarms);
+		closestFarms <- farm closest_to(self,5);
+		
 		return closestFarms;
 	}
 	

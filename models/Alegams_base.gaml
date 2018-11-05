@@ -133,7 +133,7 @@ experiment alegams type: gui {
 		 	data "Total Area INT" value: tot_INT color: rgb ('red');		
 		 	data "Total Area IE" value: tot_IE color: rgb ('yellow');
 		 	data "Total Area IMS" value: tot_IMS color: rgb ('green');
-		 	data "Total Area Reduded" value: tot_reduced color: #black;
+		 	data "Total Area Reduced" value: tot_reduced color: #black;
 			}	
 		}
 
@@ -161,7 +161,14 @@ experiment alegams type: gui {
 			}	
 		}
 		
-		
+		display Behaviour {
+			chart "Behaviour of the farmers " type: series background: rgb ('white') size: {1,0.5} position: {0,0}{
+		 	data "Repeat" value: farm count (each.lastBehaviour = "repeat") color: rgb ('red');				
+		 	data "Imitate" value: farm count (each.lastBehaviour = "imitate") color: rgb ('yellow');
+		 	data "Inquire" value: farm count (each.lastBehaviour = "inquire") color: rgb ('green');
+		 	data "Optimise" value: farm count (each.lastBehaviour = "optimise") color: rgb ('blue');		 			 			 	
+			}	
+		}		
 		monitor "Average saldo" value: avg_HH_Account;// refresh:every(1);
 		monitor "STD dev saldo" value: std_HH_Account;// refresh:every(1);			
 		monitor "Max saldo" value: max_HH_Account;// refresh:every(1);
