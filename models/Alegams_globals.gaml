@@ -210,7 +210,7 @@ model Alegams_globals
 	//radius around farmers to scan for neighbors
 	int radius_neighbors <- 200;
 	
-	//weight to give to effects of neighborhood and presence of infrastructur
+	//weight to give to effects of neighborhood and presence of infrastructure
 	//disabled neighborhoodeffect as this  model implemets the cosumat
 	float weight_NB_effect <- 0.0;
 	float weight_Infra_effect <- 0.25;

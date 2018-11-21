@@ -18,6 +18,7 @@ global{
 	geometry shape <- envelope(plot_file);
 
 	init{
+		write "STARTING SIMULATION";
 
 	// create plot though GIS file
 	
@@ -50,7 +51,7 @@ global{
 
 		do calculate_averag_HH_account;
 		do calculate_tot_areas;
-		do calculate_num_plot;
+		//do calculate_num_plot;
 
 	}//end init
 	
@@ -59,12 +60,13 @@ global{
 	reflex output_Statistics{
 		do calculate_averag_HH_account;
 		do calculate_tot_areas;
-		do calculate_num_plot;
+		do calculate_relative_mutations;		
+		//do calculate_num_plot;
 		do calculate_yield;
 		do export_spreadsheet;
 		
-		if time = 1{do export_maps;}
-		if time = 20{do export_maps;}
+		//if time = 1{do export_maps;}
+		//if time = 20{do export_maps;}
 		if time = 240 {do pause;}
 		
 	}
@@ -147,19 +149,31 @@ experiment alegams type: gui {
 			}	
 		}
 			
-		display Number_of_prod_systems {
-			chart "production_System " type: series background: rgb ('white') size: {1,0.5} position: {0,0}{
-		 	//data "INT" value: plot count (each.color= # red) color: rgb ('red');
-		 	data "INT" value: num_INT color: rgb ('red');
-		 	data "IE" value: num_IE color: rgb ('yellow'); 	
-		 	data "IMS" value: num_IMS color: rgb ('green'); 	
-		 	data "INT_IE" value: num_INT_IE color: rgb ('sienna'); 	
-		 	data "INT_IMS" value: num_INT_IMS color: rgb ('darkseagreen'); 	
-			data "IE_IMS" value: num_IE_IMS color: rgb ('mediumaquamarine'); 
-			//data "tot_S_Farmers" value: plot count(each.color!= # purple) color: rgb ('purple'); 	
-			
-			}	
-		}
+//		display Number_of_prod_systems {
+//			chart "production_System " type: series background: rgb ('white') size: {1,0.5} position: {0,0}{
+//		 	//data "INT" value: plot count (each.color= # red) color: rgb ('red');
+//		 	data "INT" value: num_INT color: rgb ('red');
+//		 	data "IE" value: num_IE color: rgb ('yellow'); 	
+//		 	data "IMS" value: num_IMS color: rgb ('green'); 	
+//		 	data "INT_IE" value: num_INT_IE color: rgb ('sienna'); 	
+//		 	data "INT_IMS" value: num_INT_IMS color: rgb ('darkseagreen'); 	
+//			data "IE_IMS" value: num_IE_IMS color: rgb ('mediumaquamarine'); 
+//			//data "tot_S_Farmers" value: plot count(each.color!= # purple) color: rgb ('purple'); 	
+//			
+//			}	
+//		}
+		
+	
+		display Mutations {
+			chart "Relative change of shift to other systems" type: series background: rgb ('white') size: {1,0.5} position: {0,0}{
+		 	data "Reduce" value: chancetoReduce*10 color: rgb ('red');				
+		 	data "to INT" value: chancetoINT*100  color: rgb ('yellow');
+		 	data "to IE" value: chancetoIE*100 color:  rgb ('green');
+		 	data "to IMS" value: chancetoIMS*100 color: rgb ('blue');		 			 			 	
+		 	data "no change" value: chancetoNONE*100 color: rgb ('grey');		 	
+		 	}
+		}	
+		
 		
 		display Behaviour {
 			chart "Behaviour of the farmers " type: series background: rgb ('white') size: {1,0.5} position: {0,0}{
@@ -170,25 +184,25 @@ experiment alegams type: gui {
 			}	
 		}		
 		monitor "Average saldo" value: avg_HH_Account;// refresh:every(1);
-		monitor "STD dev saldo" value: std_HH_Account;// refresh:every(1);			
-		monitor "Max saldo" value: max_HH_Account;// refresh:every(1);
-		monitor "Min dev saldo" value: min_HH_Account;// refresh:every(1);		
+		//monitor "STD dev saldo" value: std_HH_Account;// refresh:every(1);			
+		//monitor "Max saldo" value: max_HH_Account;// refresh:every(1);
+		//monitor "Min dev saldo" value: min_HH_Account;// refresh:every(1);		
 		monitor "Total Area INT" value: tot_INT;// refresh:every(1);
 		monitor "Total Area IE" value: tot_IE;// refresh:every(1);
 		monitor "Total Area IMS" value: tot_IMS;// refresh:every(1);
 		monitor "Total Area Reduced" value: tot_reduced;// refresh:every(1);
-		monitor "Number of INT" value: num_INT;// refresh:every(1);
-		monitor "Number of IE" value: num_IE;// refresh:every(1);
-		monitor "Number of IMS" value: num_IMS;// refresh:every(1);
-		monitor "Number of INT_IE" value: num_INT_IE;// refresh:every(1);
-		monitor "Number of INT_IMS" value: num_INT_IMS;// refresh:every(1);
-		monitor "failure rate INT" value: farmPlotFailureRate_INT;// refresh:every(1);
-		monitor "failure rate IE" value: farmPlotFailureRate_IE;// refresh:every(1);
-		monitor "failure rate IMS" value: farmPlotFailureRate_IMS;// refresh:every(1);
-		monitor "Crop Yield Mono" value: crop_yield_INT_mono;// refresh:every(1);
-		monitor "Crop Yield Vana" value: crop_yield_INT_vana;// refresh:every(1);
-		monitor "Crop Yield IE" value: crop_yield_IE;// refresh:every(1);
-		monitor "Crop Yield IMS" value: crop_yield_IMS;// refresh:every(1);
+		//monitor "Number of INT" value: num_INT;// refresh:every(1);
+		//monitor "Number of IE" value: num_IE;// refresh:every(1);
+		//monitor "Number of IMS" value: num_IMS;// refresh:every(1);
+		//monitor "Number of INT_IE" value: num_INT_IE;// refresh:every(1);
+		//monitor "Number of INT_IMS" value: num_INT_IMS;// refresh:every(1);
+		//monitor "failure rate INT" value: farmPlotFailureRate_INT;// refresh:every(1);
+		//monitor "failure rate IE" value: farmPlotFailureRate_IE;// refresh:every(1);
+		//monitor "failure rate IMS" value: farmPlotFailureRate_IMS;// refresh:every(1);
+		//monitor "Crop Yield Mono" value: crop_yield_INT_mono;// refresh:every(1);
+		//monitor "Crop Yield Vana" value: crop_yield_INT_vana;// refresh:every(1);
+		//monitor "Crop Yield IE" value: crop_yield_IE;// refresh:every(1);
+		//monitor "Crop Yield IMS" value: crop_yield_IMS;// refresh:every(1);
 		
 		
 
@@ -198,3 +212,24 @@ experiment alegams type: gui {
 }	
 
 
+
+
+
+experiment sensitifity type: batch repeat: 1 keep_seed: true until: time > 6 {	
+	
+	parameter 'Satisfaction threshold' var: ST among: [0.1, 0.5, 0.8];
+	parameter 'Uncertainty threshold' var: UT among: [0.1, 0.5, 0.8];	
+	// Define parameters to explore here if necessary
+	// parameter "My parameter" category: "My parameters" var: one_global_attribute;
+	// Define a method of exploration
+	// method exhaustive minimize: one_expression;
+	// Define attributes, actions, a init section and behaviors if necessary
+	// init { }
+	//output_file name:"results" type:csv data:"bla";
+	
+	permanent {
+	// Define inspectors, browsers and displays here
+	// These will remain open during all the simulations runs
+
+	}
+}

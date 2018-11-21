@@ -39,6 +39,11 @@ global
 	int num_INT_IMS;
 	int num_IE_IMS;
 	int num_Areamap;
+	float chancetoReduce;
+	float chancetoINT;
+	float chancetoIE;
+	float chancetoIMS;
+	float chancetoNONE;				
 	int numberothers <- (plot count (each.color != # purple));
 	action calculate_averag_HH_account
 	{
@@ -82,6 +87,10 @@ global
 		set tot_IMS <- 0.0;
 		set tot_reduced <- 0.0;
 		//tot_Areamap <-0.0;
+		//tot_INT <-   sum(plot accumulate(each.area_INT));
+		//tot_IE <-   sum(plot accumulate(each.area_IE));
+		//tot_IMS <-  sum(plot accumulate(each.area_IMS));
+		//tot_reduced <- sum(plot accumulate(each.area_Reduced));
 		ask plot
 		{
 			set tot_INT <- tot_INT + area_INT;
@@ -91,6 +100,48 @@ global
 			tot_Areamap <- tot_Areamap + tot_Area;
 		}
 
+	}
+	
+	
+	action calculate_relative_mutations{
+		
+		int nrOfReduce <- 0;
+		int nrOfINT<- 0;
+		int nrOfIE <- 0;
+		int nrOfIMS <- 0;
+		int nrOfNONE <- 0;
+		int nrOfREDUCE <- 0;
+		int nrOfFarms <- 0; 
+		ask farm{
+			nrOfFarms <- nrOfFarms + 1;
+			switch changedTo
+			{
+				match "REDUCE"{
+					nrOfREDUCE <- nrOfREDUCE + 1;
+
+				}
+				match "NONE"{
+					nrOfNONE <- nrOfNONE + 1;
+				}
+				match "INT"{
+					nrOfINT <- nrOfINT + 1;
+					
+				}
+				match "IE"{
+					nrOfIE <- nrOfIE + 1;
+				}
+				match "IMS"{
+					nrOfIMS <- nrOfIMS + 1;
+				}
+				
+			}
+			
+		}
+		chancetoReduce <- nrOfREDUCE/nrOfFarms;
+		chancetoINT <- nrOfINT/nrOfFarms;
+		chancetoIE <- nrOfINT/nrOfFarms;
+		chancetoIMS <- nrOfIMS/nrOfFarms;
+		chancetoNONE <- nrOfNONE/nrOfFarms;
 	}
 
 	action calculate_num_plot
@@ -150,15 +201,13 @@ global
 
 	action export_maps
 	{
-		save plot to: "../Results/result_" + time + ".shp" type: "shp" with:[area_INT::'int', area_IMS::'ims', area_IE::'ie', yield_INT_mono::'Yintmono', yield_INT_vana::'Yintvana', yield_IE::'YIE', yield_IMS::'Yims', production_System::'prodsys'];
+		save plot to: "D:/UserData/results" + time + ".shp" type: "shp" with:[area_INT::'int', area_IMS::'ims', area_IE::'ie', yield_INT_mono::'Yintmono', yield_INT_vana::'Yintvana', yield_IE::'YIE', yield_IMS::'Yims', production_System::'prodsys'];
 	}
 
 	action export_spreadsheet
 	{
-		save [time, tot_INT, tot_IE, tot_IMS, tot_reduced, num_INT, num_IE, num_IMS, num_INT_IE, num_INT_IMS, num_IE_IMS] to: "../results/resultexcel.csv" rewrite: false type: "csv";
+		save [time, ST, UT, tot_INT, tot_IE, tot_IMS,num_INT,num_IE,num_IMS,num_INT_IE,num_INT_IMS,num_IE_IMS,numberothers,tot_reduced, chancetoReduce,chancetoINT,chancetoIE,chancetoIMS,chancetoNONE] to: "D:/UserData/results/resultexcel.csv" rewrite: false type: "csv";
 	}
 
 }
-
-
 
