@@ -146,7 +146,8 @@ experiment alegams type: gui {
 		display Yields {
 			chart "Total yield per production system " type: series background: rgb ('white') size: {1,0.5} position: {0,0}{
 		 	data "Yield INT total" value: tot_Yield_INT color: rgb ('red');				
-		 	data "Yield INT mono" value: tot_Yield_INT color: rgb (255, 204, 204);
+		 	data "Yield INT mono" value: tot_Yield_INT_mono color: rgb (255, 204, 204);
+		 	data "Yield INT vana" value: tot_Yield_INT_vana color: rgb (255, 0, 102);
 		 	data "Yield IE" value: tot_Yield_IE color: rgb ('yellow');
 		 	data "yield IMS" value: tot_Yield_IMS color: rgb ('green');
 			}	
@@ -188,8 +189,6 @@ experiment alegams type: gui {
 		}		
 		monitor "Average saldo" value: avg_HH_Account;// refresh:every(1);
 		monitor "Average costs" value: avgCosts;// refresh:every(1);		
-		monitor "Average investments" value: avgInvest;// refresh:every(1);		
-		monitor "Average tot opp" value: avgOpp;// refresh:every(1);		
 		monitor "STD dev saldo" value: std_HH_Account;// refresh:every(1);			
 		monitor "Max saldo" value: max_HH_Account;// refresh:every(1);
 		monitor "Min dev saldo" value: min_HH_Account;// refresh:every(1);		

@@ -40,23 +40,40 @@ model Alegams_globals
  	
  	//max number of Cycles:
  	int max_cycle_INT <- 3;
+
+ 	//int max_cycle_INT_mono <- 2;
+ 	//int max_cycle_INT_vana <- 3;
 	int max_cycle_IE <- 3;
 	int max_cycle_IMS <- 999; 
 	
  	//Times to harvest
  	int time_Harvest_INT <- 4;
- 	int time_Harvest_IE <- 4 parameter: "time to harvest intensive improved extensive (months)" category: "Crop" ;
+ 	
+ 	int time_Harvest_INT_mono <- 4 parameter: "time to harvest intensive Monodon (months)" category: "Crop" ;
+	int time_Harvest_INT_vana <- 3 parameter: "time to harvest intensive Vannamei (months)" category: "Crop" ;
+	int time_Harvest_IE <- 4 parameter: "time to harvest intensive improved extensive (months)" category: "Crop" ;
 	int time_Harvest_IMS <- 3 parameter: "time to harvest integrated mangrove (months)" category: "Crop" ;
 	
 	//In case of disease can harvest after:
 	int time_Harvest_fail_INT <- 2;
+	
+ 	int time_Harvest_fail_INT_mono <- 2 parameter: "min. req. period toharvest intensive Monodon (months)" category: "Crop" ;
+	int time_Harvest_fail_INT_vana <- 1 parameter: "min. req. period toharvest intensive Vannamei (months)" category: "Crop" ;
 	int time_Harvest_fail_IE <- 1 parameter: "min. req. period toharvest improved extensive (months)" category: "Crop" ;
 	int time_Harvest_fail_IMS <- 2 parameter: "min. req. period toharvest integrated mangrove (months)" category: "Crop" ;
 
 
- 	float farmPlotFailureRate_INT <- 0.50; //parameter: "chance of disease for intensive" category: "Crop" ; //0.2;
- 	float farmPlotFailureRate_IE <- 0.41;// parameter: "chance of disease for improved extensive" category: "Crop" ; //0.12;
- 	float farmPlotFailureRate_IMS <- 0.12;// parameter: "chance of disease for integrated mangrove" category: "Crop" ; //0.1;
+
+ 	// In case Breakeven harvest time due to disease
+ 	//Parameter to harvest
+ 	//int time_Harvest_breakeven_INT_mono <- 3 parameter: "period have to harvest intensive Monodon (months)" category: "Crop" ;
+	//int time_Harvest_breakeven_INT_vana <- 2 parameter: "period have to harvest intensive Vannamei (months)" category: "Crop" ;
+	//int time_Harvest_breakeven_IE <- 2 parameter: "period have to harvest improved extensive (months)" category: "Crop" ;
+ 	
+
+ 	float farmPlotFailureRate_INT <- 0.4; //parameter: "chance of disease for intensive" category: "Crop" ; //0.2;
+ 	float farmPlotFailureRate_IE <- 0.3;// parameter: "chance of disease for improved extensive" category: "Crop" ; //0.12;
+ 	float farmPlotFailureRate_IMS <- 0.1;// parameter: "chance of disease for integrated mangrove" category: "Crop" ; //0.1;
 
 	//In case of reduced farm pond
 	float reduce_chance <- 0.9;
@@ -77,12 +94,15 @@ model Alegams_globals
  	float Prob_shift_Abandon <- 0.5; //0.5
 	
 	//crop yields  (kg/ha/cycle) 
-	int crop_yield_INT <- 7500 parameter: "crop yields intensive (kg/ha/cycle)" category: "Crop" ;	//7500	
-	int crop_yield_IE <-  750 parameter: "crop yields improved extensive (kg/ha/cycle)" category: "Crop" ;	//575
-	int crop_yield_IMS <- 350 parameter: "crop yields integrated mangrove (kg/ha/cycle)" category: "Crop" ; //308	
+
+	
+	int crop_yield_INT_mono <- 5814 parameter: "crop yields intensive Monodon (kg/ha/cycle)" category: "Crop" ; //5814
+	int crop_yield_INT_vana <- 8897	parameter: "crop yields intensive Vannamei (kg/ha/cycle)" category: "Crop" ; //8897	
+	int crop_yield_IE <- 568 parameter: "crop yields improved extensive (kg/ha/cycle)" category: "Crop" ;	//568
+	int crop_yield_IMS <- 308 parameter: "crop yields integrated mangrove (kg/ha/cycle)" category: "Crop" ; //308	
 	
 	//factor that determines the loss of shrimp in case of disease
-	float costLossFactor <- 0.9;
+	float costLossFactor <- 1.0;
 
  
 	//household related income from aquaculture
@@ -117,9 +137,9 @@ model Alegams_globals
     }
     
     //maximum loan for each system (mvnd/ha)
-    int max_loan_INT <- 15000;
-    int max_loan_IE <-15000;
-    int max_loan_IMS <-5000;
+    int max_loan_INT <- 90;
+    int max_loan_IE <-150;
+    int max_loan_IMS <-50;
     
 	
 	//cost to seed new shrimp pond (mVnd/ha)
@@ -127,6 +147,14 @@ model Alegams_globals
  	float shrimp_init_IE <- 0.0 parameter: "cost to seed new improved extensive(mVnd/ha)" category: "Crop" ; //85
  	float shrimp_init_IMS <- 0.0 parameter: "cost to seed new integrated mangrove(mVnd/ha)" category: "Crop" ; //79	 
  	 			
+	//crop costs (Mvnd/ha/month)
+	//float cropcost_avg_INT_mono <- 122.0 parameter: "crop costs intensive Monodon (mVnd/ha/month)" category: "Crop" ;
+	//float cropcost_avg_INT_vana <- 218.0 parameter: "crop costs intensive Vanamei (mVnd/ha/month)" category: "Crop" ;
+	//float cropcost_stddev_INT_vana <- 0.0;	
+	//float cropcost_avg_IE <- 17.00 parameter: "crop costs improved extensive (mVnd/ha/month)" category: "Crop" ;
+	//float cropcost_stddev_IE <- 0.0;	
+	//float cropcost_avg_IMS <- 3.0 parameter: "crop costs integrated mangrove (mVnd/ha/month)" category: "Crop" ;
+	//float cropcost_stddev_IMS <- 0.0;
 	
 	// maintance cost
  	float mantain_cost_INT <- 45.0 parameter: "mantain crop cost intensive (mVnd/ha/cycle)" category: "Crop" ;
@@ -135,16 +163,29 @@ model Alegams_globals
 	
 	
  	//cost to feed for 1st month cropping (mvnd/ha)
- 	float Cost_1st_month_INT <- 150.0 parameter: "1st crop cost intensive  (mVnd/ha)" category: "Crop" ;
- 	float cropcost1st_stddev_INT <- 25.0;
+ 	float Cost_1st_month_INT <- 180.0 parameter: "1st crop cost intensive Monodon (mVnd/ha)" category: "Crop" ;
+ 	float cropcost1st_stddev_INT <- 35.0;
+ 
+ 
+ 	float Cost_1st_month_INT_mono <- 120.0 parameter: "1st crop cost intensive Monodon (mVnd/ha)" category: "Crop" ;
+ 	float cropcost1st_stddev_INT_mono <- 25.0;
+ 	float Cost_1st_month_INT_vana <- 240.0 parameter: "1st crop cost intensive  Vanamei (mVnd/ha)" category: "Crop" ;
+ 	float cropcost1st_stddev_INT_vana <- 50.0;
  	float Cost_1st_month_IE <- 35.0 parameter: "1st crop cost Improved Extensive (mVnd/ha)" category: "Crop" ;
  	float cropcost1st_stddev_IE <- 5.0;
  	float Cost_1st_month_IMS <- 8.0 parameter: "1st crop cost Mangrove Systems (mVnd/ha)" category: "Crop" ;
  	float cropcost1st_stddev_IMS <- 2.0;
  	
  	//cost to feed monthly after 1stmonth cropping
- 	float Nomal_cost_INT <- 120 parameter: "monthly crop cost intensive Monodon (mVnd/ha/month)" category: "Crop" ;
+ 	float Nomal_cost_INT <- 130 parameter: "monthly crop cost intensive Monodon (mVnd/ha/month)" category: "Crop" ;
  	float Nomal_cost_stddev_INT <- 10.0;
+ 	
+ 
+ 
+ 	float Nomal_cost_INT_mono <- 95.0 parameter: "monthly crop cost intensive Monodon (mVnd/ha/month)" category: "Crop" ;
+ 	float Nomal_cost_stddev_INT_mono <- 5.0;
+ 	float Nomal_cost_INT_vana <- 170.0 parameter: "monthly crop cost intensive Vanamei (mVnd/ha/month)" category: "Crop" ;
+ 	float Nomal_cost_stddev_INT_vana <- 10.0;
  	float Nomal_cost_IE <- 7.0 parameter: "monthly crop cost improved extensive (mVnd/ha/month)" category: "Crop" ;
  	float Nomal_cost_stddev_IE <- 1.0;
  	float Nomal_cost_IMS <- 1.0 parameter: "monthly crop cost integrated mangrove shrimp (mVnd/ha/month)" category: "Crop" ;
@@ -153,22 +194,25 @@ model Alegams_globals
 	
 	//investment cost
 	
-	float invest_cost_INT <- 250.0;//  250.0;	
-	float invest_cost_IE <- 60.0; //60.0;
-	float invest_cost_IMS <- 30.0; //30.0;
+	float invest_cost_INT <- 260.0;
+	
+	float invest_cost_INT_mono <- 235.0;
+	float invest_cost_INT_vana <- 290.0;
+	float invest_cost_IE <- 80.0;
+	float invest_cost_IMS <- 50.0;
 		
-	//investment surplus factor
-	float invest_surplus_factor <- 2;
 	
 	//shrimp prices Mvnc/kg
 	
 	float shrimp_price_INT <- 0.25;
+	float shrimp_price_INT_mono <- 0.25 parameter: "shrimp price intensive Monodon (mVnd/kg)" category: "Market" ; //0.25
+	float shrimp_price_INT_vana <- 0.18 parameter: "shrimp price intensive Vannamei (mVnd/kg)" category: "Market" ; //0.12
 	float shrimp_price_IE <- 0.25 parameter: "shrimp price improved extensive (mVnd/kg)" category: "Market" ; //0.25
 	float shrimp_price_IMS <- 0.25 parameter: "shrimp price integrated mangrove (mVnd/kg)" category: "Market" ; //0.25
 
 
 	//radius around farmers to scan for neighbors
-	int radius_neighbors <- 500;
+	int radius_neighbors <- 200;
 	
 	//weight to give to effects of neighborhood and presence of infrastructure
 	//disabled neighborhoodeffect as this  model implemets the cosumat
@@ -180,13 +224,13 @@ model Alegams_globals
 	//depth of memory
 	int memDepth <- 5;	
 	//threshold satisfaction
-	float ST <- 0.3;
+	float ST <- 0.2;
 	//threshold uncertainty;
-	float UT <- 0.7;
-	//parameter to account for the uncertainty caused by external factors (such as market)
+	float UT <- 0.2;
 	float baseUncertainty <-0.0;
 //
 int number_INT_IE;
+
 	
 	
 	

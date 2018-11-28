@@ -28,8 +28,8 @@ global
 	float tot_reduced;
 	float tot_Areamap;
 	float tot_Yield_INT;
-	//float tot_Yield_INT_vana;
-	//float tot_Yield_INT_mono;
+	float tot_Yield_INT_vana;
+	float tot_Yield_INT_mono;
 	float tot_Yield_IE;
 	float tot_Yield_IMS;
 	int num_INT;
@@ -44,44 +44,39 @@ global
 	float chancetoIE;
 	float chancetoIMS;
 	float chancetoNONE;
-	float avgCosts;
-	float avgInvest;
-	float avgOpp;				
+	float avgCosts;				
 	int numberothers <- (plot count (each.color != # purple));
 	action calculate_averag_HH_account
 	{
 		list<float> account_List <- [];
 		list<float> cost_List <- [];
-		list<float> invest_List <- [];
-		list<float> opp_List <- [];
 		ask farm
 		{
-			float totopp <- farmPlot.area_IE+farmPlot.area_IMS+farmPlot.area_INT+farmPlot.area_Reduced;
 			add HH_Account to: account_List;
 			add costs to: cost_List;
-			add investment_cost to: invest_List;
-			add totopp to: opp_List;
 			
 		}
 		avgCosts <- mean(cost_List);
-		avgInvest <- mean(invest_List);
-		avgOpp <- sum(opp_List);		
 		avg_HH_Account <- mean(account_List);
 		std_HH_Account <- mean_deviation(account_List);
 		min_HH_Account <- min(account_List);
 		max_HH_Account <- max(account_List);
-		//std_up_HH_Account <- avg_HH_Account + std_HH_Account;
-		//std_down_HH_Account <- avg_HH_Account - std_HH_Account;
+		std_up_HH_Account <- avg_HH_Account + std_HH_Account;
+		std_down_HH_Account <- avg_HH_Account - std_HH_Account;
 	}
 
 	action calculate_yield
 	{
+		set tot_Yield_INT_mono <- 0.0;
+		set tot_Yield_INT_vana <- 0.0;
 		set tot_Yield_INT <- 0.0;
 		set tot_Yield_IE <- 0.0;
 		set tot_Yield_IMS <- 0.0;
 		ask plot
 		{
-			set tot_Yield_INT <- tot_Yield_INT + yield_INT;
+			set tot_Yield_INT <- tot_Yield_INT + yield_INT_vana + yield_INT_mono;
+			set tot_Yield_INT_vana <- tot_Yield_INT_vana + yield_INT_vana;
+			set tot_Yield_INT_mono <- tot_Yield_INT_mono + yield_INT_mono;
 			set tot_Yield_IE <- tot_Yield_IE + yield_IE;
 			set tot_Yield_IMS <- tot_Yield_IMS + yield_IMS;
 		}
@@ -209,7 +204,7 @@ global
 
 	action export_maps
 	{
-		save plot to: "D:/UserData/results" + time + ".shp" type: "shp" with:[area_INT::'int', area_IMS::'ims', area_IE::'ie', yield_INT::'Yint', yield_IE::'YIE', yield_IMS::'Yims', production_System::'prodsys'];
+		save plot to: "D:/UserData/results" + time + ".shp" type: "shp" with:[area_INT::'int', area_IMS::'ims', area_IE::'ie', yield_INT_mono::'Yintmono', yield_INT_vana::'Yintvana', yield_IE::'YIE', yield_IMS::'Yims', production_System::'prodsys'];
 	}
 
 	action export_spreadsheet

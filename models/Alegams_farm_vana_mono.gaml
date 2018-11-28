@@ -37,7 +37,8 @@ species farm
 	int IE_fail_time;
 	int INT_sucess_time;
 	int IE_sucess_time;
-	int cycle_INT;
+	int cycle_INT_mono;
+	int cycle_INT_vana;
 	int cycle_IE;
 	int cycle_IMS;
 	int reduce_time <- 0;
@@ -46,7 +47,8 @@ species farm
 	bool reduce_INT <- false;
 	bool reduce_IE <- false;
 	float crop_cost;
-	float income_from_INT;
+	float income_from_INT_mono;
+	float income_from_INT_vana;
 	float income_from_IE;
 	float income_from_IMS;
 	float actual_Income;
@@ -94,14 +96,14 @@ species farm
 		hh_Size <- rnd(2, 5);
 		age <- rnd(22, 70);
 		time <- rnd(1,12);
-		grow_Time_INT <- rnd(0, time_Harvest_INT);
+		grow_Time_INT <- rnd(0, time_Harvest_INT_mono);
 		grow_Time_IE <- rnd(0, time_Harvest_IE);
 		grow_Time_IMS <- rnd(0, time_Harvest_IMS);
-		cycle_INT <- rnd(0, max_cycle_INT);
-
+		cycle_INT_mono <- rnd(0, max_cycle_INT_mono);
+		cycle_INT_vana <- rnd(0, max_cycle_INT_vana);
 		cycle_IE <- rnd(0, max_cycle_IE);
 		cycle_IMS <- rnd(0, max_cycle_IMS);
-    	HH_Account <- rnd(-400.0, 400.0); 
+    	//HH_Account <- avg_income * (farmPlot.area_IE + farmPlot.area_INT + farmPlot.area_IMS); 
 		grow_Time_IMS <- 0; //month
 		INT_fail_time <- 0;
 		IE_fail_time <- 0;
@@ -153,7 +155,14 @@ species farm
 		//investment_cost <- 0.0;
 	}
 
-
+	//	if at the fist time farming in a year, INT farmer failed their crop
+//	reflex chosing_shrimp_type when: farmPlot.shrimp_Type = monodon and INT_fail_time = 1 and cycle_INT_mono = 1 {
+//	if debug {
+//		write "...chosing shrimp larvae";
+//	}
+//
+//	farmPlot.shrimp_Type <- vanamei;
+//}
 
 	reflex calc_crop_costs
 	{
@@ -168,15 +177,31 @@ species farm
 		//INT
 		if farmPlot.area_INT > 0
 		{
+			if farmPlot.shrimp_Type = monodon
+			{
 				if grow_Time_INT = 0
 				{
 					//seed_cost <- seed_cost + shrimp_init_INT * farmPlot.area_INT;
-					int_cost <- gauss({ Cost_1st_month_INT, cropcost1st_stddev_INT }) * farmPlot.area_INT;
+					int_cost <- gauss({ Cost_1st_month_INT_mono, cropcost1st_stddev_INT_mono }) * farmPlot.area_INT; //crop cost in the first month for intensive farm with monodon;
 				} else
 				{
-					int_cost <- gauss({ Nomal_cost_INT, Nomal_cost_stddev_INT }) * farmPlot.area_INT;
+					int_cost <- gauss({ Nomal_cost_INT_mono, Nomal_cost_stddev_INT_mono }) * farmPlot.area_INT;
 				}
 
+			}
+
+			if farmPlot.shrimp_Type = vanamei
+			{
+				if grow_Time_INT = 0
+				{
+					//seed_cost <- seed_cost + shrimp_init_INT * farmPlot.area_INT;
+					int_cost <- gauss({ Cost_1st_month_INT_vana, cropcost1st_stddev_INT_vana }) * farmPlot.area_INT; //crop cost in the first month for intensive farm with vanamei;
+				} else
+				{
+					int_cost <- gauss({ Nomal_cost_INT_vana, Nomal_cost_stddev_INT_vana }) * farmPlot.area_INT;
+				}
+
+			}
 
 		}
 		//IE
@@ -208,12 +233,17 @@ species farm
 		}
 
 		//Add maintance cost for clean ponds etc. at the end of each cycle (arend 23082017)
-		if cycle_INT = max_cycle_INT 
+		if cycle_INT_mono = max_cycle_INT_mono and farmPlot.shrimp_Type = monodon
 		{
 			maintain_cost <- maintain_cost + (mantain_cost_INT * farmPlot.area_INT);
-			cycle_INT <- 0;
+			cycle_INT_mono <- 0;
 		}
 
+		if cycle_INT_vana = max_cycle_INT_vana and farmPlot.shrimp_Type = vanamei
+		{
+			maintain_cost <- maintain_cost + (mantain_cost_INT * farmPlot.area_INT);
+			cycle_INT_vana <- 0;
+		}
 
 		if cycle_IE = max_cycle_IE
 		{
@@ -234,7 +264,14 @@ species farm
 	reflex calculatePotentialIncome{
 		let shrimp_price_INT <- 0.0;
 		let crop_yield_INT <- 0;
-		potential_Income <- (farmPlot.area_IMS * crop_yield_IMS * shrimp_price_IMS) +  (farmPlot.area_IE * crop_yield_IE * shrimp_price_IE) + (farmPlot.area_INT * crop_yield_INT *shrimp_price_INT);
+		if (farmPlot.shrimp_Type = monodon){
+			shrimp_price_INT <- shrimp_price_INT_mono;
+			crop_yield_INT <- crop_yield_INT_mono;
+		}else{
+			shrimp_price_INT <- shrimp_price_INT_mono;
+			crop_yield_INT <- crop_yield_INT_vana;			
+		}		 
+		 potential_Income <- (farmPlot.area_IMS * crop_yield_IMS * shrimp_price_IMS) +  (farmPlot.area_IE * crop_yield_IE * shrimp_price_IE) + (farmPlot.area_INT * crop_yield_INT *shrimp_price_INT);
 	}
 
 
@@ -271,8 +308,10 @@ species farm
 
 	reflex check_for_harvest_of_Intensive when: farmPlot.area_INT > 0
 	{
-		income_from_INT <- 0.0;
-		farmPlot.yield_INT <- 0.0;
+		income_from_INT_mono <- 0.0;
+		income_from_INT_vana <- 0.0;
+		farmPlot.yield_INT_mono <- 0.0;
+		farmPlot.yield_INT_vana <- 0.0;
 		
 		if debug
 		{
@@ -282,33 +321,63 @@ species farm
 		if flip(farmPlotFailureRate_INT)
 		{
 		//write "disease at growth time: "+ INT_fail_time;
-			if  grow_Time_INT >= time_Harvest_fail_INT
+			if (farmPlot.shrimp_Type = monodon) and grow_Time_INT >= time_Harvest_fail_INT_mono
 			{
-				farmPlot.yield_INT <- ((costLossFactor*grow_Time_INT) / time_Harvest_INT) * crop_yield_INT * farmPlot.area_INT;
-				income_from_INT <- farmPlot.yield_INT * shrimp_price_INT;
-				if grow_Time_INT >= time_Harvest_fail_INT
+				farmPlot.yield_INT_mono <- ((costLossFactor*grow_Time_INT) / time_Harvest_INT_mono) * crop_yield_INT_mono * farmPlot.area_INT;
+				income_from_INT_mono <- farmPlot.yield_INT_mono * shrimp_price_INT_mono;
+				if grow_Time_INT >= time_Harvest_fail_INT_mono
 				{
-					cycle_INT <- cycle_INT + 1;
+					cycle_INT_mono <- cycle_INT_mono + 1;
+				}
+			} else if (farmPlot.shrimp_Type = vanamei) and grow_Time_INT >= time_Harvest_fail_INT_vana
+			{
+				farmPlot.yield_INT_vana <- ((costLossFactor*grow_Time_INT) / time_Harvest_INT_vana) * crop_yield_INT_vana * farmPlot.area_INT;
+				income_from_INT_vana <- farmPlot.yield_INT_vana * shrimp_price_INT_vana;
+				if grow_Time_INT >= time_Harvest_fail_INT_vana
+				{
+					cycle_INT_vana <- cycle_INT_vana + 1;
 				}
 			}
 			INT_fail_time <- INT_fail_time + 1;
 			grow_Time_INT <- 0;
 		} else
 		{ //check for harvest incase of no disease
-				if grow_Time_INT < time_Harvest_INT //  farm can not be harvest
+			if farmPlot.shrimp_Type = monodon
+			{
+				if grow_Time_INT < time_Harvest_INT_mono //  farm can not be harvest
 				{
 					grow_Time_INT <- grow_Time_INT + 1; //model will check time for harvest in the next time step
 				} else //farm can be harvested
 				{
 				//write "healthy harvest";
-					farmPlot.yield_INT <- crop_yield_INT * farmPlot.area_INT;
-					income_from_INT <- farmPlot.yield_INT * shrimp_price_INT;
-					cycle_INT <- cycle_INT + 1;
+					farmPlot.yield_INT_mono <- crop_yield_INT_mono * farmPlot.area_INT;
+					income_from_INT_mono <- farmPlot.yield_INT_mono * shrimp_price_INT_mono;
+					cycle_INT_mono <- cycle_INT_mono + 1;
 					grow_Time_INT <- 0;
 					INT_sucess_time <- INT_sucess_time + 1;
 				}
 
+			} else if farmPlot.shrimp_Type = vanamei
+			{
+				if grow_Time_INT < time_Harvest_INT_vana
+				{
+					grow_Time_INT <- grow_Time_INT + 1;
+				} else //farm can be harvested
+				{
+					//write "healthy harvest";
+					farmPlot.yield_INT_vana <- crop_yield_INT_vana * farmPlot.area_INT;
+					income_from_INT_vana <- farmPlot.yield_INT_vana * shrimp_price_INT_vana;
+					cycle_INT_vana <- cycle_INT_vana + 1;
+					grow_Time_INT <- 0;
+					INT_sucess_time <- INT_sucess_time + 1;
+
+				}
+
 			}
+
+		}
+
+		//if farmPlot.area_IMS > 0 {write grow_Time_INT;}
 	}
 
 	reflex check_for_harvest_of_Improved_Extensive when: farmPlot.area_IE > 0
@@ -364,6 +433,7 @@ species farm
 			{
 				cycle_IMS <- cycle_IMS + 1;
 			}
+
 			grow_Time_IMS <- 0;
 		} else
 		{ //in case of no disease
@@ -531,16 +601,14 @@ species farm
 			write"...Calculate uncertainty level";
 		}
 	
-		float avgIncome <- mean(HH_account_List);
-		float stdIncome <- standard_deviation(HH_account_List);
+		float avgDeltaIncome <- mean(delta_incomeList);
+		float stdDeltaIncome <- standard_deviation(delta_incomeList);
 		//write "avg: "+ avgDeltaIncome+"std: "+stdDeltaIncome;
-		if avgIncome != 0{
-			Uncertainty <- abs(baseUncertainty + ((stdIncome)/ avgIncome));
+		if avgDeltaIncome != 0{
+			Uncertainty <- baseUncertainty + ((stdDeltaIncome)/ avgDeltaIncome);
 		}else{
 			Uncertainty <- 0.9;
-		}
-		if Uncertainty > 1.0{Uncertainty <- 1.0;}	
-		if Uncertainty < 0.0 {Uncertainty <- 0.0;}		
+		}	
 			//if debug{
 			//	write "      "+Uncertainty;
 			//}
@@ -550,7 +618,7 @@ species farm
 		//write  "S : "+Satisfaction;
 		//write  "U : "+Uncertainty;
 		if Satisfaction > ST {satisFied <- true;}else{satisFied <- false;}
-		if Uncertainty  <= UT  {certain <- true;}else{certain <- false;}
+		if Uncertainty < UT  {certain <- true;}else{certain <- false;}
 		if satisFied and certain{
 			if debug{
 				write"...Repeating";
@@ -596,31 +664,29 @@ species farm
 		}
 
 		float hh_cost <- hh_Size * HH_expenses_avg;
-		actual_Income <- income_from_INT + income_from_IE + income_from_IMS;
+		actual_Income <- income_from_INT_mono + income_from_INT_vana + income_from_IE + income_from_IMS;
 		costs <- hh_cost + crop_cost + investment_cost;
 		let balance <- (actual_Income + second_Income)  - costs;
 		let loan_Mutation <- 0.0;
-		if loan > 0{
-			if (HH_Account + balance) < costs
+		if (HH_Account + balance) < costs
+		{
+			loan_Mutation <- costs;
+			if (loan + loan_Mutation) > max_loan
 			{
-				loan_Mutation <- costs;
-				if (loan + loan_Mutation) > max_loan
-				{
-					loan_Mutation <- max_loan - loan;
-				}
-	
-			} else if (HH_Account + balance) > (2 * costs)
+				loan_Mutation <- max_loan - loan;
+			}
+
+		} else if (HH_Account + balance) > (1.5 * costs)
+		{
+			if loan > 0
 			{
-				if loan > 0
-				{
-					loan_Mutation <- (-0.1 * loan);
-				}
-	
-				if loan <= 0
-				{
-					loan_Mutation <- 0.0;
-				}
-				}
+				loan_Mutation <- (-0.1 * loan);
+			}
+
+			if loan <= 0
+			{
+				loan_Mutation <- 0.0;
+			}
 		}
 
 		set HH_Account <-round(HH_Account + balance + loan_Mutation) with_precision 2;
@@ -637,7 +703,7 @@ species farm
 			write "=====================";
 		}
 		
-			//reset investment cost
+			//reset investmenst cost
 	}
 
 //actions
@@ -650,11 +716,11 @@ species farm
 	if farmPlot.area_IE > 0{ hasIE <- true;}
 	
 	if hasINT and hasIE { 
-		//shifted_system <- self reduce_cropping(INT);
+		shifted_system <- self reduce_cropping(INT);
 	}else if hasINT and !hasIE { 
-		//shifted_system <- self reduce_cropping(INT);
+		shifted_system <- self reduce_cropping(INT);
 	}else if !hasINT and hasIE {
-		//shifted_system <- self reduce_cropping(IE);
+		shifted_system <- self reduce_cropping(IE);
 	}
 	do updateMutationRegistration(shifted_system, "REDUCE");
  	
@@ -716,9 +782,9 @@ species farm
 			if farmPlot.area_IE > 0{
 				shifted_system <- self shift_IE_to_INT[];
 			}
-			else if farmPlot.area_IMS > 0{
-				shifted_system <-  self shift_IMS_to_INT[];
-			}
+			//else if farmPlot.area_IMS > 0{
+			//	shifted_system <-  self shift_IMS_to_INT[];
+			//}
 			do updateMutationRegistration(shifted_system, "INT");
 				
 		}
@@ -730,8 +796,13 @@ species farm
 		shift_INT_size <- rnd(0.3, 0.6);
 		float cost_1st_month <- 0.0;		
 		int shrimpType <- rnd(monodon,vanamei);
+		if shrimpType = monodon{
+			cost_1st_month <- Cost_1st_month_INT_mono;
+		}else{
+			cost_1st_month <- Cost_1st_month_INT_vana;
+		}		
 		let ic <- invest_cost_INT * shift_INT_size;
-		if HH_Account > (Cost_1st_month_INT * shift_INT_size + (invest_surplus_factor*ic)) and (farmPlot.area_IE > 0) {
+		if HH_Account > (cost_1st_month * shift_INT_size + ic) and (farmPlot.area_IE > 0) {
 			did_shift <- true;
 			farmPlot.shrimp_Type <- shrimpType;							
 			if farmPlot.area_IE - shift_INT_size > 0 {
@@ -755,11 +826,16 @@ species farm
 		shift_INT_size <- rnd(0.3, 0.6);
 		float cost_1st_month <- 0.0;		
 		int shrimpType <- rnd(monodon,vanamei);
+		if shrimpType = monodon{
+			cost_1st_month <- Cost_1st_month_INT_mono;
+		}else{
+			cost_1st_month <- Cost_1st_month_INT_vana;
+		}				
 			let ic <- invest_cost_INT * shift_INT_size;
-			if HH_Account > (Cost_1st_month_INT * shift_INT_size + (invest_surplus_factor*ic)) and (farmPlot.area_IMS > 0) {
+			if HH_Account > (cost_1st_month * shift_INT_size + ic) and (farmPlot.area_IMS > 0) {
 				if farmPlot.area_INT < max_INT_size{
 					did_shift <- true;
-					if farmPlot.area_IMS > shift_INT_size {
+					if farmPlot.area_IMS - shift_INT_size > 0 {
 						farmPlot.area_INT <- farmPlot.area_INT + shift_INT_size;
 						farmPlot.area_IMS <- farmPlot.area_IMS - shift_INT_size;
 						farmPlot.shrimp_Type <- shrimpType;
@@ -777,10 +853,10 @@ species farm
 	}	
 	bool shift_INT_to_IE {
 		//write "INT to IE";
-		bool did_shift <- false;	
+		bool did_shift <- false;
 		set investment_cost <- 0.0;		
 		let ic <- investment_cost + (invest_cost_IE * farmPlot.area_INT);
-		if HH_Account > (Cost_1st_month_IE * farmPlot.area_INT +(invest_surplus_factor*ic)) and (farmPlot.area_INT > 0) {
+		if HH_Account > (Cost_1st_month_IE * farmPlot.area_INT +ic) and (farmPlot.area_INT > 0) {
 			farmPlot.area_IE <- farmPlot.area_IE + farmPlot.area_INT;
 			farmPlot.area_INT <- 0.0;
 			set investment_cost <-  ic;
@@ -794,7 +870,7 @@ species farm
 		    bool did_shift <- false;
 			set investment_cost <- 0.0;		     
 			let ic <- investment_cost + (invest_cost_IMS * farmPlot.area_INT);
-			if HH_Account > (Cost_1st_month_IMS * farmPlot.area_INT + (invest_surplus_factor*ic)) and (farmPlot.area_INT > 0){
+			if HH_Account > (Cost_1st_month_IMS * farmPlot.area_INT + ic) and (farmPlot.area_INT > 0){
 				farmPlot.area_IMS <- farmPlot.area_IMS  + farmPlot.area_INT;
 				farmPlot.area_INT <- 0.0;
 				set investment_cost <- ic;
@@ -818,33 +894,29 @@ species farm
 		//write countLoss;
 		//if countLoss > 2 {
 		//write mean(HH_account_List);
-		//if mean(HH_account_List) < 0{
-		  
+		if mean(HH_account_List) < 0{  
 			if fType = INT {
-				if HH_Account < Cost_1st_month_INT * farmPlot.area_INT{
-					if (farmPlot.area_INT * 0.5) > min_INT_size {
-						farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_INT * 0.5);
-						farmPlot.area_INT <- farmPlot.area_INT * 0.5;
-					} else {
-						farmPlot.area_Reduced <- farmPlot.area_Reduced + farmPlot.area_INT; // - min_INT_size) ;
-						farmPlot.area_INT <- 0.0; //min_INT_size;				
-					}
-					set farmPlot.production_System_Before_Reduce <- INT;
-					did_shift <- true;
-				}				
-			}else if fType = IE {
-				if HH_Account < Cost_1st_month_INT * farmPlot.area_IE{				
-					if (farmPlot.area_IE * 0.5) > min_IE_size {
-						farmPlot.area_IE <- farmPlot.area_IE * 0.5;
-						farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE * 0.5);
-					} else {
-						farmPlot.area_IE <- min_IE_size;
-						farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE - min_IE_size);
-					}
-					set farmPlot.production_System_Before_Reduce <- IE;
-					did_shift <- true;	
+				if (farmPlot.area_INT * 0.5) > min_INT_size {
+					farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_INT * 0.5);
+					farmPlot.area_INT <- farmPlot.area_INT * 0.5;
+				} else {
+					farmPlot.area_Reduced <- farmPlot.area_Reduced + farmPlot.area_INT; // - min_INT_size) ;
+					farmPlot.area_INT <- 0.0; //min_INT_size;				
 				}
+				set farmPlot.production_System_Before_Reduce <- INT;
+				did_shift <- true;				
+			} else if fType = IE {
+				if (farmPlot.area_IE * 0.5) > min_IE_size {
+					farmPlot.area_IE <- farmPlot.area_IE * 0.5;
+					farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE * 0.5);
+				} else {
+					farmPlot.area_IE <- min_IE_size;
+					farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE - min_IE_size);
+				}
+				set farmPlot.production_System_Before_Reduce <- IE;
+				did_shift <- true;
 			}
+		}
 		return did_shift;
 	}
 
@@ -861,6 +933,7 @@ species farm
 		 		changedTo <- 'NONE';
 		 	}
 	}
+
 
 	list getXRandomMoreSatisfiedFarms(int n){
 		float ownHappiness <- Happyness;

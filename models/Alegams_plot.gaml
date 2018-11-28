@@ -22,6 +22,7 @@ species plot
 	int production_System update: self determine_prod_system [];// update system itself
 	rgb color <- # gray;
 	int shrimp_Type;
+	float yield_INT;	
 	float yield_INT_mono;
 	float yield_INT_vana;
 	float yield_IE;
