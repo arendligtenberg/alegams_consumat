@@ -54,35 +54,25 @@ model Alegams_globals
 	int time_Harvest_fail_IMS <- 2 parameter: "min. req. period toharvest integrated mangrove (months)" category: "Crop" ;
 
 
- 	float farmPlotFailureRate_INT <- 0.50; //parameter: "chance of disease for intensive" category: "Crop" ; //0.2;
- 	float farmPlotFailureRate_IE <- 0.41;// parameter: "chance of disease for improved extensive" category: "Crop" ; //0.12;
- 	float farmPlotFailureRate_IMS <- 0.12;// parameter: "chance of disease for integrated mangrove" category: "Crop" ; //0.1;
+ 	float farmPlotFailureRate_INT <- 0.45; //parameter: "chance of disease for intensive" category: "Crop" ; //0.2;
+ 	float farmPlotFailureRate_IE <- 0.30;// parameter: "chance of disease for improved extensive" category: "Crop" ; //0.3;
+ 	float farmPlotFailureRate_IMS <- 0.1;// parameter: "chance of disease for integrated mangrove" category: "Crop" ; //0.1;
 
 	//In case of reduced farm pond
-	float reduce_chance <- 0.9;
+	//float reduce_chance <- 0.9;
 	int time_reuse_after_reduce <- 3;
 	
 	//reducing condition for each system
 	int fail_time_to_reduce_INT <-12;
 	int fail_time_to_reduce_IE <-2;
 	
-	//probability to shift
-	
-	float Prob_shift_IE_INT;  //<- 0.5; //0.5
- 	float Prob_shift_IMS_IE ; //<- 0.05;  //0.05
- 	float Prob_shift_IMS_INT; // <- 0.001; //0.01
- 	float Prob_shift_INT_IE; // <- 0.1; //0.1
- 	float Prob_shift_INT_IMS; // <- 0.03; //0.03
- 	float Prob_shift_IE_IMS; // <- 0.01; //0.01
- 	float Prob_shift_Abandon <- 0.5; //0.5
-	
 	//crop yields  (kg/ha/cycle) 
 	int crop_yield_INT <- 7500 parameter: "crop yields intensive (kg/ha/cycle)" category: "Crop" ;	//7500	
-	int crop_yield_IE <-  750 parameter: "crop yields improved extensive (kg/ha/cycle)" category: "Crop" ;	//575
-	int crop_yield_IMS <- 350 parameter: "crop yields integrated mangrove (kg/ha/cycle)" category: "Crop" ; //308	
+	int crop_yield_IE <-  575 parameter: "crop yields improved extensive (kg/ha/cycle)" category: "Crop" ;	//575
+	int crop_yield_IMS <- 308 parameter: "crop yields integrated mangrove (kg/ha/cycle)" category: "Crop" ; //308	
 	
 	//factor that determines the loss of shrimp in case of disease
-	float costLossFactor <- 0.9;
+	float costLossFactor <- 1;
 
  
 	//household related income from aquaculture
@@ -117,15 +107,15 @@ model Alegams_globals
     }
     
     //maximum loan for each system (mvnd/ha)
-    int max_loan_INT <- 15000;
-    int max_loan_IE <-15000;
-    int max_loan_IMS <-5000;
+    int max_loan_INT <- 5000;
+    int max_loan_IE <-5000;
+    int max_loan_IMS <-1000;
     
 	
 	//cost to seed new shrimp pond (mVnd/ha)
- 	float shrimp_init_INT <- 0.0 parameter: "cost to seed new intensive (mVnd/ha)" category: "Crop" ; //250
- 	float shrimp_init_IE <- 0.0 parameter: "cost to seed new improved extensive(mVnd/ha)" category: "Crop" ; //85
- 	float shrimp_init_IMS <- 0.0 parameter: "cost to seed new integrated mangrove(mVnd/ha)" category: "Crop" ; //79	 
+ 	float shrimp_init_INT <- 125.0 parameter: "cost to seed new intensive (mVnd/ha)" category: "Crop" ; //250
+ 	float shrimp_init_IE <- 50.0 parameter: "cost to seed new improved extensive(mVnd/ha)" category: "Crop" ; //85
+ 	float shrimp_init_IMS <- 20.0 parameter: "cost to seed new integrated mangrove(mVnd/ha)" category: "Crop" ; //79	 
  	 			
 	
 	// maintance cost
@@ -158,7 +148,7 @@ model Alegams_globals
 	float invest_cost_IMS <- 30.0; //30.0;
 		
 	//investment surplus factor
-	float invest_surplus_factor <- 2;
+	float invest_surplus_factor <- 1;
 	
 	//shrimp prices Mvnc/kg
 	
@@ -180,11 +170,11 @@ model Alegams_globals
 	//depth of memory
 	int memDepth <- 5;	
 	//threshold satisfaction
-	float ST <- 0.3;
+	float ST <- 0.5;
 	//threshold uncertainty;
-	float UT <- 0.7;
+	float UT <- 0.5;
 	//parameter to account for the uncertainty caused by external factors (such as market)
-	float baseUncertainty <-0.0;
+	float baseUncertainty <-0.2;
 //
 int number_INT_IE;
 	

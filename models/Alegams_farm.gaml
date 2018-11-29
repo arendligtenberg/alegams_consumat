@@ -153,8 +153,6 @@ species farm
 		//investment_cost <- 0.0;
 	}
 
-
-
 	reflex calc_crop_costs
 	{
 		crop_cost <- 0.0;
@@ -170,27 +168,25 @@ species farm
 		{
 				if grow_Time_INT = 0
 				{
-					//seed_cost <- seed_cost + shrimp_init_INT * farmPlot.area_INT;
+					seed_cost <- seed_cost + shrimp_init_INT * farmPlot.area_INT;
 					int_cost <- gauss({ Cost_1st_month_INT, cropcost1st_stddev_INT }) * farmPlot.area_INT;
 				} else
 				{
 					int_cost <- gauss({ Nomal_cost_INT, Nomal_cost_stddev_INT }) * farmPlot.area_INT;
 				}
-
-
 		}
+		
 		//IE
 		if farmPlot.area_IE > 0
 		{
 			if grow_Time_IE = 0
 			{
-				//seed_cost <- seed_cost + shrimp_init_IE * farmPlot.area_IE;
+				seed_cost <- seed_cost + shrimp_init_IE * farmPlot.area_IE;
 				ie_cost <- gauss({ Cost_1st_month_IE, cropcost1st_stddev_IE }) * farmPlot.area_IE; //crop cost in the first month for improve extensive farm;
 			} else
 			{
 				ie_cost <- gauss({ Nomal_cost_IE, Nomal_cost_stddev_IE }) * farmPlot.area_IE;
 			}
-
 		}
 
 		//IMS
@@ -198,7 +194,7 @@ species farm
 		{
 			if grow_Time_IMS <= 0
 			{
-				//seed_cost <- seed_cost + shrimp_init_IMS * farmPlot.area_IMS;
+				seed_cost <- seed_cost + shrimp_init_IMS * farmPlot.area_IMS;
 				ims_cost <- gauss({ Cost_1st_month_IMS, cropcost1st_stddev_IMS }) * farmPlot.area_IMS; //crop cost in the first month for integrated mangrove shrimp farm;
 			} else
 			{
@@ -233,7 +229,7 @@ species farm
 	//calculate max income from harvest when nothing goes wrong	
 	reflex calculatePotentialIncome{
 		let shrimp_price_INT <- 0.0;
-		let crop_yield_INT <- 0;
+		let crop_yield_INT <- 0.0;
 		potential_Income <- (farmPlot.area_IMS * crop_yield_IMS * shrimp_price_IMS) +  (farmPlot.area_IE * crop_yield_IE * shrimp_price_IE) + (farmPlot.area_INT * crop_yield_INT *shrimp_price_INT);
 	}
 
@@ -272,8 +268,7 @@ species farm
 	reflex check_for_harvest_of_Intensive when: farmPlot.area_INT > 0
 	{
 		income_from_INT <- 0.0;
-		farmPlot.yield_INT <- 0.0;
-		
+		farmPlot.yield_INT <- 0.0;		
 		if debug
 		{
 			write "...check harvest intensive system";
@@ -282,15 +277,15 @@ species farm
 		if flip(farmPlotFailureRate_INT)
 		{
 		//write "disease at growth time: "+ INT_fail_time;
-			if  grow_Time_INT >= time_Harvest_fail_INT
-			{
+			//if  grow_Time_INT >= time_Harvest_fail_INT
+			//{
 				farmPlot.yield_INT <- ((costLossFactor*grow_Time_INT) / time_Harvest_INT) * crop_yield_INT * farmPlot.area_INT;
 				income_from_INT <- farmPlot.yield_INT * shrimp_price_INT;
 				if grow_Time_INT >= time_Harvest_fail_INT
 				{
 					cycle_INT <- cycle_INT + 1;
 				}
-			}
+			//}
 			INT_fail_time <- INT_fail_time + 1;
 			grow_Time_INT <- 0;
 		} else
@@ -600,31 +595,32 @@ species farm
 		costs <- hh_cost + crop_cost + investment_cost;
 		let balance <- (actual_Income + second_Income)  - costs;
 		let loan_Mutation <- 0.0;
-		if loan > 0{
-			if (HH_Account + balance) < costs
-			{
-				loan_Mutation <- costs;
-				if (loan + loan_Mutation) > max_loan
-				{
-					loan_Mutation <- max_loan - loan;
-				}
-	
-			} else if (HH_Account + balance) > (2 * costs)
-			{
-				if loan > 0
-				{
-					loan_Mutation <- (-0.1 * loan);
-				}
-	
-				if loan <= 0
-				{
-					loan_Mutation <- 0.0;
-				}
-				}
-		}
+//		if loan > 0{
+//			if (HH_Account + balance) < costs
+//			{
+//				loan_Mutation <- costs;
+//				if (loan + loan_Mutation) > max_loan
+//				{
+//					loan_Mutation <- max_loan - loan;
+//				}
+//	
+//			} else if (HH_Account + balance) > (2 * costs)
+//			{
+//				if loan > 0
+//				{
+//					loan_Mutation <- (-0.1 * loan);
+//				}
+//	
+//				if loan <= 0
+//				{
+//					loan_Mutation <- 0.0;
+//				}
+//				}
+//		}
 
-		set HH_Account <-round(HH_Account + balance + loan_Mutation) with_precision 2;
-		set loan <- round(loan + loan_Mutation) with_precision 2;
+		//set HH_Account <-round(HH_Account + balance + loan_Mutation) with_precision 2;
+		set HH_Account <-round(HH_Account + balance) with_precision 2;		
+		//set loan <- round(loan + loan_Mutation) with_precision 2;
 		if debug2
 		{
 			write "costs: " + costs;
@@ -650,13 +646,13 @@ species farm
 	if farmPlot.area_IE > 0{ hasIE <- true;}
 	
 	if hasINT and hasIE { 
-		//shifted_system <- self reduce_cropping(INT);
+		shifted_system <- self reduce_cropping(INT);
 	}else if hasINT and !hasIE { 
-		//shifted_system <- self reduce_cropping(INT);
+		shifted_system <- self reduce_cropping(INT);
 	}else if !hasINT and hasIE {
-		//shifted_system <- self reduce_cropping(IE);
+		shifted_system <- self reduce_cropping(IE);
 	}
-	do updateMutationRegistration(shifted_system, "REDUCE");
+	if shifted_system{do updateMutationRegistration(shifted_system, "REDUCE");}
  	
  	//if shifted_system {add 'REDUCE' to: shiftList; changedTo <- 'REDUCE';} else{add 'NONE'  to: shiftList; changedTo <- 'NONE';}
 	}
@@ -671,18 +667,22 @@ species farm
 				}else if farmPlot.area_IMS > min_INT_size{
 					shifted_system <- self shift_IMS_to_INT[];
 				}
-				do updateMutationRegistration(shifted_system, "INT");
+				if shifted_system{do updateMutationRegistration(shifted_system, "INT");}
 			}
 			if productionSystemToMoveTo = IE{
 				shifted_system <- self shift_INT_to_IE[];
-		 		do updateMutationRegistration(shifted_system, "IE");			
+		 		if shifted_system{do updateMutationRegistration(shifted_system, "IE");}			
 			}
 			
 			if productionSystemToMoveTo = IMS{
 				shifted_system <- self shift_INT_to_IMS[];
-				do updateMutationRegistration(shifted_system, "IMS");										   
+				if shifted_system{do updateMutationRegistration(shifted_system, "IMS");}										   
+			}
+			if !shifted_system{
+				do inquire;
 			}
 		}
+
 
 	action inquire{
 			bool shifted_system <- false;
@@ -698,16 +698,20 @@ species farm
 				}else if farmPlot.area_IMS > min_INT_size{
 					shifted_system <- self shift_IMS_to_INT[];
 				}
-			 	do updateMutationRegistration(shifted_system, "INT");								
+			 	if shifted_system{do updateMutationRegistration(shifted_system, "INT");}								
 			}
 			if productionSystemToMoveTo = IE{
 				shifted_system <- self shift_INT_to_IE[];
-			 	do updateMutationRegistration(shifted_system, "IE");			
+			 	if shifted_system{do updateMutationRegistration(shifted_system, "IE");}			
 			}
 			if productionSystemToMoveTo = IMS{
 				shifted_system <- self shift_INT_to_IMS[];
-			 	do updateMutationRegistration(shifted_system, "IMS");			
+			 	if shifted_system{do updateMutationRegistration(shifted_system, "IMS");}			
 			}			
+		
+			if !shifted_system{
+				do updateMutationRegistration(shifted_system, "NONE");
+			}
 		}
 		
 	action optimise {
@@ -719,8 +723,11 @@ species farm
 			else if farmPlot.area_IMS > 0{
 				shifted_system <-  self shift_IMS_to_INT[];
 			}
-			do updateMutationRegistration(shifted_system, "INT");
+			if shifted_system{do updateMutationRegistration(shifted_system, "INT");}
 				
+			if !shifted_system{
+				do updateMutationRegistration(shifted_system, "NONE");
+			}
 		}
 	
 
@@ -807,24 +814,12 @@ species farm
 	bool reduce_cropping (int fType) {
 		bool did_shift <- false;
 		int countLoss <- 0;
-//		loop c from: 0 to: 2 {
-//			float actualIncome <- actual_incomeList[c];
-//			float potentialIncome <- potential_incomeList[c];
-//			//write actualIncome;
-//			if (actualIncome-potentialIncome) < 0 {
-//				countLoss <- countLoss + 1;
-//			}
-//		}
-		//write countLoss;
-		//if countLoss > 2 {
-		//write mean(HH_account_List);
-		//if mean(HH_account_List) < 0{
-		  
 			if fType = INT {
+				float reduceArea <- farmPlot.area_INT * 0.5;
 				if HH_Account < Cost_1st_month_INT * farmPlot.area_INT{
-					if (farmPlot.area_INT * 0.5) > min_INT_size {
-						farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_INT * 0.5);
-						farmPlot.area_INT <- farmPlot.area_INT * 0.5;
+					if reduceArea > min_INT_size {
+						farmPlot.area_Reduced <- farmPlot.area_Reduced + reduceArea;
+						farmPlot.area_INT <- farmPlot.area_INT - reduceArea;
 					} else {
 						farmPlot.area_Reduced <- farmPlot.area_Reduced + farmPlot.area_INT; // - min_INT_size) ;
 						farmPlot.area_INT <- 0.0; //min_INT_size;				
@@ -833,13 +828,18 @@ species farm
 					did_shift <- true;
 				}				
 			}else if fType = IE {
-				if HH_Account < Cost_1st_month_INT * farmPlot.area_IE{				
-					if (farmPlot.area_IE * 0.5) > min_IE_size {
-						farmPlot.area_IE <- farmPlot.area_IE * 0.5;
-						farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE * 0.5);
-					} else {
-						farmPlot.area_IE <- min_IE_size;
+				float reduceArea <- farmPlot.area_IE * 0.5;				
+				if HH_Account < Cost_1st_month_IE * farmPlot.area_IE{				
+					if  reduceArea > min_IE_size {
+						farmPlot.area_Reduced <- farmPlot.area_Reduced + reduceArea;
+						farmPlot.area_IE <- farmPlot.area_IE - reduceArea;						
+					}else if farmPlot.area_IE > min_IE_size  {
 						farmPlot.area_Reduced <- farmPlot.area_Reduced + (farmPlot.area_IE - min_IE_size);
+						farmPlot.area_IE <- min_IE_size;						
+					}else{
+						farmPlot.area_Reduced <- farmPlot.area_Reduced + farmPlot.area_IE;
+						farmPlot.area_IE <- 0.0;						
+						
 					}
 					set farmPlot.production_System_Before_Reduce <- IE;
 					did_shift <- true;	

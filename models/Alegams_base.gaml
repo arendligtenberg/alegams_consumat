@@ -129,7 +129,8 @@ experiment alegams type: gui {
 	
 		display HH_Account {
 			chart "Average saldo " type: series background: rgb ('white') size: {1,0.5} position: {0,0}{
-		 	data "AVG Saldo" value: avg_HH_Account color: rgb ('red');
+		 	data "AVG Saldo" value: avg_HH_Account color: rgb ('green');
+		 	//data "AVG Loan" value: avgLoan color: rgb ('red');		 	
 	 	 	
 			}
 		}
@@ -186,13 +187,15 @@ experiment alegams type: gui {
 		 	data "Optimise" value: farm count (each.lastBehaviour = "optimise") color: rgb ('blue');		 			 			 	
 			}	
 		}		
+		
 		monitor "Average saldo" value: avg_HH_Account;// refresh:every(1);
-		monitor "Average costs" value: avgCosts;// refresh:every(1);		
-		monitor "Average investments" value: avgInvest;// refresh:every(1);		
-		monitor "Average tot opp" value: avgOpp;// refresh:every(1);		
+		//monitor "Average loan" value: avgLoan;// refresh:every(1);
+		monitor "Average cost" value: avgCosts;// refresh:every(1);		
+		monitor "Average investments" value: avgInvest;// refresh:every(1);
+		monitor "Gini coefficient" value: gini;// refresh:every(1);				
 		monitor "STD dev saldo" value: std_HH_Account;// refresh:every(1);			
-		monitor "Max saldo" value: max_HH_Account;// refresh:every(1);
-		monitor "Min dev saldo" value: min_HH_Account;// refresh:every(1);		
+		//monitor "Max saldo" value: max_HH_Account;// refresh:every(1);
+		//monitor "Min dev saldo" value: min_HH_Account;// refresh:every(1);		
 		monitor "Total Area INT" value: tot_INT;// refresh:every(1);
 		monitor "Total Area IE" value: tot_IE;// refresh:every(1);
 		monitor "Total Area IMS" value: tot_IMS;// refresh:every(1);
@@ -221,7 +224,11 @@ experiment alegams type: gui {
 experiment sens_nogui type: batch repeat: 1 keep_seed: true until: time > 6 {	
 	
 	parameter 'Satisfaction threshold' var: ST among: [0.1, 0.5, 0.8];
-	parameter 'Uncertainty threshold' var: UT among: [0.1, 0.5, 0.8];	
+	parameter 'Uncertainty threshold' var: UT among: [0.1, 0.5, 0.8];
+	parameter 'Failure Rate_INT'  var: farmPlotFailureRate_INT among: [0.3, 0.4, 0.5];	
+	parameter 'Failure Rate_IE'  var: farmPlotFailureRate_IE among: [0.2, 0.3, 0.4];	
+	parameter 'Failure Rate_IMS'  var: farmPlotFailureRate_IMS among: [0.01, 0.1, 0.2];	
+	
 	// method exhaustive minimize: one_expression;
 	
 	permanent {

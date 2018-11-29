@@ -46,30 +46,37 @@ global
 	float chancetoNONE;
 	float avgCosts;
 	float avgInvest;
-	float avgOpp;				
+	//float avgLoan;
+	float gini;
+	//float avgOpp;				
 	int numberothers <- (plot count (each.color != # purple));
 	action calculate_averag_HH_account
 	{
 		list<float> account_List <- [];
 		list<float> cost_List <- [];
 		list<float> invest_List <- [];
-		list<float> opp_List <- [];
+		//list<float> opp_List <- [];
+		//list<float> loan_List <- [];		
 		ask farm
 		{
-			float totopp <- farmPlot.area_IE+farmPlot.area_IMS+farmPlot.area_INT+farmPlot.area_Reduced;
+			//float totopp <- farmPlot.area_IE+farmPlot.area_IMS+farmPlot.area_INT+farmPlot.area_Reduced;
 			add HH_Account to: account_List;
 			add costs to: cost_List;
+			//add loan to: loan_List;
 			add investment_cost to: invest_List;
-			add totopp to: opp_List;
+			//add totopp to: opp_List;
 			
 		}
 		avgCosts <- mean(cost_List);
+		//avgLoan <- mean(loan_List);
+		gini <- gini(account_List);		
 		avgInvest <- mean(invest_List);
-		avgOpp <- sum(opp_List);		
+		//avgOpp <- sum(opp_List);		
 		avg_HH_Account <- mean(account_List);
-		std_HH_Account <- mean_deviation(account_List);
-		min_HH_Account <- min(account_List);
-		max_HH_Account <- max(account_List);
+		
+		//std_HH_Account <- mean_deviation(account_List);
+		//min_HH_Account <- min(account_List);
+		//max_HH_Account <- max(account_List);
 		//std_up_HH_Account <- avg_HH_Account + std_HH_Account;
 		//std_down_HH_Account <- avg_HH_Account - std_HH_Account;
 	}
@@ -105,7 +112,7 @@ global
 			set tot_IE <- tot_IE + area_IE;
 			set tot_IMS <- tot_IMS + area_IMS;
 			set tot_reduced <- tot_reduced + area_Reduced;
-			tot_Areamap <- tot_Areamap + tot_Area;
+			//tot_Areamap <- tot_Areamap + tot_Area;
 		}
 
 	}
