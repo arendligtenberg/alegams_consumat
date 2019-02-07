@@ -221,7 +221,7 @@ global
 
 	action export_spreadsheet
 	{
-		save [time, ST, UT, tot_INT, tot_IE, tot_IMS,num_INT,num_IE,num_IMS,num_INT_IE,num_INT_IMS,num_IE_IMS,numberothers,tot_reduced, chancetoReduce,chancetoINT,chancetoIE,chancetoIMS,chancetoNONE] to: "D:/UserData/results/resultexcel.csv" rewrite: false type: "csv";
+		save [time, ST, UT, tot_INT, tot_IE, tot_IMS,num_INT,num_IE,num_IMS,num_INT_IE,num_INT_IMS,num_IE_IMS,numberothers,tot_reduced, chancetoReduce,chancetoINT,chancetoIE,chancetoIMS,chancetoNONE,avgCosts,avgInvest] to: "D:/UserData/results/resultexcel.csv" rewrite: false type: "csv";
 	}
 
 }

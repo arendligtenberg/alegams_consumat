@@ -63,11 +63,12 @@ global{
 		do calculate_relative_mutations;		
 		do calculate_num_plot;
 		do calculate_yield;
+		if time > 9{ 
 		do export_spreadsheet;
-		
-		if time = 1{do export_maps;}
-		if time = 240{do export_maps;}
-		if time = 241 {do pause;}
+		}
+		if time = 10{do export_maps;}
+		if time = 80{do export_maps;}
+
 		
 	}
 	
@@ -222,21 +223,14 @@ experiment alegams type: gui {
 //no gui output
 experiment sens_nogui type: batch repeat: 1 keep_seed: true until: time > 10 {	
 	
-	parameter 'Satisfaction threshold' var: ST among: [0.1, 0.5, 0.8];
-	parameter 'Uncertainty threshold' var: UT among: [0.1, 0.5, 0.8];
-	//parameter 'Failure Rate_INT'  var: farmPlotFailureRate_INT among: [0.3, 0.4, 0.5];	
-	//parameter 'Failure Rate_IE'  var: farmPlotFailureRate_IE among: [0.2, 0.3, 0.4];	
-	//parameter 'Failure Rate_IMS'  var: farmPlotFailureRate_IMS among: [0.01, 0.1, 0.2];	
+	parameter 'Satisfaction threshold' var: ST among: [0.1,0,3,0.5,0.7,0.9];
+	parameter 'Uncertainty threshold' var: UT among: [0.1,0,3,0.5,0.7,0.9];
+	//parameter 'Failure Rate_INT'  var: farmPlotFailureRate_INT among: [0.1, 0.3, 0.5, 0.7, 0.9]; 	
+	//parameter 'Failure Rate_IE'  var: farmPlotFailureRate_IE among:  [0.1, 0.3, 0.5, 0.7, 0.9];	
+	//parameter 'Failure Rate_IMS'  var: farmPlotFailureRate_IMS among:  [0.1, 0.3,0.5,0.7,0.9];	
 	
 	// method exhaustive minimize: one_expression;
 	
-	permanent {
-		monitor "Total Area INT" value: tot_INT;// refresh:every(1);
-		monitor "Total Area IE" value: tot_IE;// refresh:every(1);
-		monitor "Total Area IMS" value: tot_IMS;// refresh:every(1);
-		monitor "Total Area Reduced" value: tot_reduced;// refresh:every(1);
-
-	}
 
 
 
