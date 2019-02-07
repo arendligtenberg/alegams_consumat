@@ -23,12 +23,12 @@ species plot
 	rgb color <- # gray;
 	int shrimp_Type;
 	float yield_INT;	
-	float yield_INT_mono;
-	float yield_INT_vana;
+	//float yield_INT_mono;
+	//float yield_INT_vana;
 	float yield_IE;
 	float yield_IMS;
 	int production_System_Before_Reduce;
-	int Neighbour;
+	//int Neighbour;
 	int Int_motivat;
 
 	init

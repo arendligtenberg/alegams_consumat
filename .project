@@ -15,4 +15,11 @@
 		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
 		<nature>msi.gama.application.gamaNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>external/resultexcel.csv</name>
+			<type>1</type>
+			<location>D:/UserData/results/resultexcel.csv</location>
+		</link>
+	</linkedResources>
 </projectDescription>

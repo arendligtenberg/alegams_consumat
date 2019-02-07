@@ -16,8 +16,8 @@ species farm
 	plot farmPlot;
 	list<farm> neighbours;
 	list plot;
-	int plotId;
-	int nr_Plots;
+	//int plotId;
+	//int nr_Plots;
 	int hh_Size;
 	float HH_Account;
 	//float income <- 0.0;
@@ -25,18 +25,18 @@ species farm
 	float costs <- 0.0;	
 	float max_loan;
 	int age; //years
-	float interest_Bank;
-	float interest_Commercial;
-	int nr_Labour;
-	int prob_Shift;
-	int time; //month
+	//float interest_Bank;
+	//float interest_Commercial;
+	//int nr_Labour;
+	//int prob_Shift;
+	//int time; //month
 	int grow_Time_INT; //month
 	int grow_Time_IE; //month
 	int grow_Time_IMS; //month
-	int INT_fail_time;
-	int IE_fail_time;
-	int INT_sucess_time;
-	int IE_sucess_time;
+	//int INT_fail_time;
+	//int IE_fail_time;
+	//int INT_sucess_time;
+	//int IE_sucess_time;
 	int cycle_INT;
 	int cycle_IE;
 	int cycle_IMS;
@@ -103,10 +103,11 @@ species farm
 		cycle_IMS <- rnd(0, max_cycle_IMS);
     	HH_Account <- rnd(-400.0, 400.0); 
 		grow_Time_IMS <- 0; //month
-		INT_fail_time <- 0;
-		IE_fail_time <- 0;
-		INT_sucess_time <- 0;
-		IE_sucess_time <- 0;
+		//INT_fail_time <- 0;
+		//IE_fail_time <- 0;
+		//INT_sucess_time <- 0;
+		//
+		//IE_sucess_time <- 0;
 		shifted <- false;
 		//INT_abandoned_area <- 0;
 		//INT_abandon_time <-0;	
@@ -140,10 +141,10 @@ species farm
 		if time = 12
 		{
 			time <- 0;
-			INT_fail_time <- 0;
-			IE_fail_time <- 0;
-			INT_sucess_time <- 0;
-			IE_sucess_time <- 0;
+			//INT_fail_time <- 0;
+			//IE_fail_time <- 0;
+			//INT_sucess_time <- 0;
+			//IE_sucess_time <- 0;
 		}
 
 
@@ -286,7 +287,7 @@ species farm
 					cycle_INT <- cycle_INT + 1;
 				}
 			//}
-			INT_fail_time <- INT_fail_time + 1;
+			//INT_fail_time <- INT_fail_time + 1;
 			grow_Time_INT <- 0;
 		} else
 		{ //check for harvest incase of no disease
@@ -300,7 +301,7 @@ species farm
 					income_from_INT <- farmPlot.yield_INT * shrimp_price_INT;
 					cycle_INT <- cycle_INT + 1;
 					grow_Time_INT <- 0;
-					INT_sucess_time <- INT_sucess_time + 1;
+					//INT_sucess_time <- INT_sucess_time + 1;
 				}
 
 			}
@@ -323,7 +324,7 @@ species farm
 			{
 				cycle_IE <- cycle_IE + 1;
 			}
-			IE_fail_time <- IE_fail_time + 1;			
+			//IE_fail_time <- IE_fail_time + 1;			
 			grow_Time_IE <- 0;
 
 		} else
@@ -335,7 +336,7 @@ species farm
 			{
 				farmPlot.yield_IE <- crop_yield_IE * farmPlot.area_IE;
 				cycle_IE <- cycle_IE + 1;
-				IE_sucess_time <- IE_sucess_time + 1;
+				//IE_sucess_time <- IE_sucess_time + 1;
 				grow_Time_IE <- 0;
 			}
 		}
@@ -395,30 +396,31 @@ species farm
 
 	reflex shift_from_reduced when: farmPlot.area_Reduced > 0 and length(actual_incomeList) = memDepth
 	{
-		if reduce_time >= time_reuse_after_reduce
-		{
+		//if reduce_time >= time_reuse_after_reduce 
+		//if HH_Account > max_loan
+		//{
 			if debug
 			{
 				write "Recropping reduced area ";
 			}
 
 			HH_Account <- rnd(0, (avg_income));
-			if farmPlot.production_System_Before_Reduce = INT
+			if farmPlot.production_System_Before_Reduce = INT and HH_Account < Cost_1st_month_INT * farmPlot.area_INT
 			{
 				farmPlot.area_INT <- farmPlot.area_INT + farmPlot.area_Reduced;
 				set farmPlot.shrimp_Type <- rnd(monodon, vanamei);
 				farmPlot.area_Reduced <- 0.0;
-			} else
+			} else if HH_Account < Cost_1st_month_IE * farmPlot.area_IE
 			{
 				farmPlot.area_IE <- farmPlot.area_IE + farmPlot.area_Reduced;
 				farmPlot.shrimp_Type <- vanamei; //rnd(monodon, vanamei)			
 				farmPlot.area_Reduced <- 0.0;
 			}
 			reduce_time <- 0;
-		} else
-		{
-			reduce_time <- reduce_time + 1;
-		}
+//		} else
+//		{
+//			reduce_time <- reduce_time + 1;
+//		}
 	}
 
 	

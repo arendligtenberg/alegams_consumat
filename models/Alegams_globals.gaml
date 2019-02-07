@@ -68,7 +68,7 @@ model Alegams_globals
 	
 	//crop yields  (kg/ha/cycle) 
 	int crop_yield_INT <- 7500 parameter: "crop yields intensive (kg/ha/cycle)" category: "Crop" ;	//7500	
-	int crop_yield_IE <-  575 parameter: "crop yields improved extensive (kg/ha/cycle)" category: "Crop" ;	//575
+	int crop_yield_IE <-  750 parameter: "crop yields improved extensive (kg/ha/cycle)" category: "Crop" ;	//575
 	int crop_yield_IMS <- 308 parameter: "crop yields integrated mangrove (kg/ha/cycle)" category: "Crop" ; //308	
 	
 	//factor that determines the loss of shrimp in case of disease

@@ -67,7 +67,7 @@ global{
 		
 		if time = 1{do export_maps;}
 		if time = 240{do export_maps;}
-		//if time = 240 {do pause;}
+		if time = 241 {do pause;}
 		
 	}
 	
@@ -86,17 +86,16 @@ global{
 
 //		reflex climate_scenario_avg when: time mod 12 = 0
 //	{
-//		farmPlotFailureRate_INT <- farmPlotFailureRate_INT + (farmPlotFailureRate_INT * 0.0055);
-//		farmPlotFailureRate_IE <- farmPlotFailureRate_IE + (farmPlotFailureRate_IE * 0.0083);
-//		farmPlotFailureRate_IMS <- farmPlotFailureRate_IMS + (farmPlotFailureRate_IMS * 0.0059);
+//		farmPlotFailureRate_INT <- farmPlotFailureRate_INT + (farmPlotFailureRate_INT * 0.00083);
+//		farmPlotFailureRate_IE <- farmPlotFailureRate_IE + (farmPlotFailureRate_IE * 0.00083);
+//		farmPlotFailureRate_IMS <- farmPlotFailureRate_IMS + (farmPlotFailureRate_IMS * 0.00083);
 //
-//		crop_yield_INT_mono <- crop_yield_INT_mono - (crop_yield_INT_mono * 0.024);
-//		crop_yield_INT_vana <- crop_yield_INT_vana - (crop_yield_INT_vana * 0.028);
+//		crop_yield_INT <- crop_yield_INT - (crop_yield_INT * 0.026);
 //		crop_yield_IE <- crop_yield_IE - (crop_yield_IE * 0.024);
 //		crop_yield_IMS <- crop_yield_IMS - (crop_yield_IMS * 0.017);
 //	}
-//	}
-//
+//	
+
 
 
 //		reflex climate_scenario_max when: time mod 12 = 0
@@ -221,13 +220,13 @@ experiment alegams type: gui {
 }	
 
 //no gui output
-experiment sens_nogui type: batch repeat: 1 keep_seed: true until: time > 6 {	
+experiment sens_nogui type: batch repeat: 1 keep_seed: true until: time > 10 {	
 	
 	parameter 'Satisfaction threshold' var: ST among: [0.1, 0.5, 0.8];
 	parameter 'Uncertainty threshold' var: UT among: [0.1, 0.5, 0.8];
-	parameter 'Failure Rate_INT'  var: farmPlotFailureRate_INT among: [0.3, 0.4, 0.5];	
-	parameter 'Failure Rate_IE'  var: farmPlotFailureRate_IE among: [0.2, 0.3, 0.4];	
-	parameter 'Failure Rate_IMS'  var: farmPlotFailureRate_IMS among: [0.01, 0.1, 0.2];	
+	//parameter 'Failure Rate_INT'  var: farmPlotFailureRate_INT among: [0.3, 0.4, 0.5];	
+	//parameter 'Failure Rate_IE'  var: farmPlotFailureRate_IE among: [0.2, 0.3, 0.4];	
+	//parameter 'Failure Rate_IMS'  var: farmPlotFailureRate_IMS among: [0.01, 0.1, 0.2];	
 	
 	// method exhaustive minimize: one_expression;
 	
